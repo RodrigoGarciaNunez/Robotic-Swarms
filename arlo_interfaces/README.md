@@ -1,4 +1,4 @@
-###Directorio msg
+### Directorio msg
 Contiene los archivos que definen los mensajes personalizados para el proyecto
 
 ### DIrectorio srv
