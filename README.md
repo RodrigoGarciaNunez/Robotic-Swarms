@@ -23,7 +23,7 @@ El paquete está dividido en los siguientes Directorios:
   -  CMakeLists.txt
   -  package.xml
     
-Consulte README.md de /cognitive_architecture
+Consulte /cognitive_architecture/README.md
 
 ## Paquete "arlo_interfaces"
 En este paquete se encuentran los mensajes y servicios personalizados.
@@ -35,6 +35,6 @@ El paquete está dividido en los siguientes Directorios:
   -  CMakeLists.txt
   -  package.xml
 
-Consulte README.md de /arlo_interfaces
+Consulte /arlo_interfaces/README.md
 
 
