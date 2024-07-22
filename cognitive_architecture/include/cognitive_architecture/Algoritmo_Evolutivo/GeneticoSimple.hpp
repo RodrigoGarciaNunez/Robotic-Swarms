@@ -143,24 +143,24 @@ void GeneticoSimple::inicalizarPob()
 void GeneticoSimple::evaluarPoblacion(Individuo *pop)
 {
 
-    // std::system("ros2 launch cognitive_architecture dummys.launch.py  > /dev/null");
+    std::system("ros2 launch cognitive_architecture dummys.launch.py  > /dev/null");
 
-    // std::vector<std::string> comandos = {
-    //                                                                     // dev/null es para que no se imprima en terminal   
-    //     "ros2 run cognitive_architecture cpp_exe 1 > /dev/null",    
-    //     "ros2 run cognitive_architecture Controlador_individuo.py 1 /dev/null"           
-    // };
+    std::vector<std::string> comandos = {
+                                                                        // dev/null es para que no se imprima en terminal   
+        "ros2 run cognitive_architecture cpp_exe 1 > /dev/null",    
+        "ros2 run cognitive_architecture Controlador_individuo.py 1 /dev/null"           
+    };
 
-    // std::vector<std::thread> threads;
+    std::vector<std::thread> threads;
 
-    // // Crear un hilo para cada comando en la lista
-    // for (const auto& comando : comandos) {
-    //     threads.emplace_back([this,comando]() { std::system(comando.c_str()); });
-    // }
+    // Crear un hilo para cada comando en la lista
+    for (const auto& comando : comandos) {
+        threads.emplace_back([this,comando]() { std::system(comando.c_str()); });
+    }
 
-    // for (auto& thread : threads) {
-    //     thread.detach();
-    // }
+    for (auto& thread : threads) {
+        thread.detach();
+    }
 
     for (int i = 0; i < popSize; ++i)
     {
