@@ -8,13 +8,15 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <sys/stat.h>
+
 #include "cognitive_architecture/Algoritmo_Evolutivo/GeneticoSimple.hpp"
 #include "arlo_interfaces/msg/pesos_struct.hpp"
 #include "std_srvs/srv/empty.hpp"
-//#include "ProblemaOptim.h"
+// #include "ProblemaOptim.h"
 #include "cognitive_architecture/Algoritmo_Evolutivo/RobotNaviFun.hpp"
-//#include "Individuo.h"
-//#include "Estadisticas.h"
+// #include "Individuo.h"
+// #include "Estadisticas.h"
 
 using std::placeholders::_1;
 // #include "cognitive_architecture/SimulationController.h"
@@ -25,30 +27,28 @@ class cp : public rclcpp::Node
 {
 
 public:
-
-    cp(int i, RobotNaviFun* p, ParamsGA params,bool * bandera) : Node("Corteza_premotora_" + std::to_string(i)+"0"), 
-    identificador(i), genetico(p, params), flag(bandera) 
+    cp(int i, RobotNaviFun *p, ParamsGA params, bool *bandera) : Node("Corteza_premotora_" + std::to_string(i) + "0"),
+                                                                 identificador(i), genetico(p, params, i), flag(bandera)
     {
 
-        this->genera_pesos();
+        //this->genera_pesos();
+        inputDir = "./archivo_pesos_"+std::to_string(identificador)+".txt";
 
         reset_simulation_client_ = this->create_client<std_srvs::srv::Empty>("/reset_world");
 
-        //service_ = this->create_service<std_srvs::srv::Empty>("robot" + std::to_string(i) + "0_activacion", std::bind(&cp::ejecutaGenetico,this));
+        // service_ = this->create_service<std_srvs::srv::Empty>("robot" + std::to_string(i) + "0_activacion", std::bind(&cp::ejecutaGenetico,this));
 
         publisher_ = this->create_publisher<std_msgs::msg::String>("robot" + std::to_string(i) + "0/corteza_premotora_evolutivo", 10);
-        
-        //subscription_ =
-        //    this->create_subscription<arlo_interfaces::msg::PesosStruct>("robot" + std::to_string(i) + "0/corteza_motora_secundaria_pesos", 10, std::bind(&cp::ejecutaGenetico, this, std::placeholders::_1));
 
-        
-        timer_ = this -> create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico,this));
+        // subscription_ =
+        //     this->create_subscription<arlo_interfaces::msg::PesosStruct>("robot" + std::to_string(i) + "0/corteza_motora_secundaria_pesos", 10, std::bind(&cp::ejecutaGenetico, this, std::placeholders::_1));
 
-        //this->ejecutaGenetico();
+        timer_ = this->create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico, this));
+
+        // this->ejecutaGenetico();
     }
 
 private:
-
     // void on_activate() override {
     //     // Esta función se llama automáticamente cuando el nodo es activado
     //     RCLCPP_INFO(this->get_logger(), "Nodo activado");
@@ -56,12 +56,27 @@ private:
     //     ejecutaGenetico();
     // }
 
-    void resetGazebo()const{
+
+    // bool dirExists(std::string path)
+    // {
+    //     struct stat info;
+    //     std::cerr << path << std::endl;
+    //     if (stat(path.c_str(), &info) != 0)
+    //         return false;   // si la ruta no existe
+    //     else if (info.st_mode & S_IFDIR)
+    //         return true;  //si sí existe
+    //     else
+    //         return false; //si sí existe, pero no es un directorio
+    // }
+
+
+    void resetGazebo() const
+    {
         auto request = std::make_shared<std_srvs::srv::Empty::Request>();
         auto response = reset_simulation_client_->async_send_request(request);
     }
 
-    //void callback(const arlo_interfaces::msg::PesosStruct &msg)
+    // void callback(const arlo_interfaces::msg::PesosStruct &msg)
     void ejecutaGenetico()
     {
         RCLCPP_INFO(this->get_logger(), "me llegaron los pesos ");
@@ -71,45 +86,44 @@ private:
             std::cerr << peso << std::endl;
         }*/
         auto pesos = std_msgs::msg::String();
-
-        this->genera_pesos();
+        
+        // if(!dirExists(inputDir)){
+        //     std::cerr << "no hay archivo de pesos" << std::endl;
+        //    this->genera_pesos();
+        // }
 
         genetico.optimizar();
 
+        // aca hay que ponerle una publicacion para colocar al mejor controlador
 
-        //aca hay que ponerle una publicacion para colocar al mejor controlador
-
-        std::cerr<< "voy a mandar los mejores pesos que obtuvo optimizar" << std::endl;
-        
+        std::cerr << "voy a mandar los mejores pesos que obtuvo optimizar" << std::endl;
 
         auto mensajePesos = std_msgs::msg::String();
 
-        //mensajePesos.data = "archivo_pesos_%d.txt", identificador;
+        // mensajePesos.data = "archivo_pesos_%d.txt", identificador;
         char buffer[50];
         std::sprintf(buffer, "./archivo_pesos_%d.txt", identificador);
         mensajePesos.data = std::string(buffer);
 
         publisher_->publish(mensajePesos);
-        //resetGazebo();
-        *flag=false;
+        // resetGazebo();
+        *flag = false;
     }
 
-    void genera_pesos()
-    {
+    // void genera_pesos()
+    // {
 
-        std::ofstream archivo("archivo_pesos_" + std::to_string(identificador) + ".txt"); // por el momento, al crearse este nodo, se crea un archivo con pesos aleatorios para cada robot
-        std::random_device rd;
-        std::mt19937 gen(rd());                             // Motor mersenne_twister_engine
-        std::uniform_int_distribution<> distribucion(1, 3); // Números entre 1 y 100
+    //     std::ofstream archivo("archivo_pesos_" + std::to_string(identificador) + ".txt"); // por el momento, al crearse este nodo, se crea un archivo con pesos aleatorios para cada robot
+    //     std::random_device rd;
+    //     std::mt19937 gen(rd());                             // Motor mersenne_twister_engine
+    //     std::uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 100
 
-        archivo << "98 2 0\n";
-        for (int i = 0; i < 98; i++)
-        {
-            archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
-        }
-    }
-
-
+    //     archivo << "98 2 0\n";
+    //     for (int i = 0; i < 98; i++)
+    //     {
+    //         archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
+    //     }
+    // }
 
     // Atributos de la clase
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_; // Publicador para enviar los pesos óptimos
@@ -117,12 +131,12 @@ private:
     rclcpp::TimerBase::SharedPtr timer_; // Temporizador para ejecutar la optimización periódicamente
     rclcpp::Client<std_srvs::srv::Empty>::SharedPtr reset_simulation_client_;
     rclcpp::Service<arlo_interfaces::srv::EvaluateDriver>::SharedPtr service_;
-    bool* flag;
+    bool *flag;
     GeneticoSimple genetico;
-    //ProblemaOptim* p;
+    // ProblemaOptim* p;
     int identificador;
+    std::string inputDir;
 };
-
 
 /* Función principal
 int main(int argc, char **argv)
@@ -136,9 +150,8 @@ int main(int argc, char **argv)
     return 0;
 }*/
 
-
-// cp(int i, RobotNaviFun* p, ParamsGA params,bool * bandera) : Node("Corteza_premotora_" + std::to_string(i)+"0"), 
-//     identificador(i), genetico(p, params), flag(bandera) 
+// cp(int i, RobotNaviFun* p, ParamsGA params,bool * bandera) : Node("Corteza_premotora_" + std::to_string(i)+"0"),
+//     identificador(i), genetico(p, params), flag(bandera)
 //     {
 
 //         this->genera_pesos();
@@ -148,7 +161,6 @@ int main(int argc, char **argv)
 //         publisher_ = this->create_publisher<std_msgs::msg::String>("robot" + std::to_string(i) + "0/corteza_premotora_evolutivo", 10);
 //         //subscription_ =
 //         //    this->create_subscription<arlo_interfaces::msg::PesosStruct>("robot" + std::to_string(i) + "0/corteza_motora_secundaria_pesos", 10, std::bind(&cp::callback, this, std::placeholders::_1));
-
 
 //         //this->ejecutaGenetico();
 //     }

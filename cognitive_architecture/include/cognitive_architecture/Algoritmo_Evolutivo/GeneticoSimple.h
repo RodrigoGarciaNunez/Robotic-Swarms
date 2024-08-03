@@ -47,7 +47,7 @@ public:
 //     };
 
 
-   GeneticoSimple(ProblemaOptim*, ParamsGA&);
+   GeneticoSimple(ProblemaOptim*, ParamsGA&, int id);
    ~GeneticoSimple();
    void optimizar();
 
@@ -60,6 +60,7 @@ private:
    void inicalizarPob();
    void reporteInicial();
    bool dirExists(string path);
+   bool fileExists(string path);
    void evaluarPoblacion(Individuo*);
    double aleatorio();
    void seleccionPadres(Individuo*);
@@ -73,6 +74,8 @@ private:
    void elitismo(Individuo* pop, int g);
    int flip(double prob);
 
+   int id;                      /*identificador del genetico*/
+
    ProblemaOptim* problema;    /* el problema que se resolverá */
    Individuo* oldpop;         /* última generación de individuos */
    Individuo* newpop;         /* siguiente generación de individuos */
@@ -82,6 +85,7 @@ private:
    int    Gmax;                /* número máximo de generaciones */
    double  Pc;                 /* porcentaje de cruza */
    double  Pm;                 /* porcentaje de mutación */
+   double auxPm;                /* para el caso en el que se quiera usar una Pm diferente en algún momento */
    int precision;              /* dígitos de precisión */
 
    int chromoSize;             /* longitud del cromosoma de caa individuo */
@@ -89,6 +93,7 @@ private:
    double sumAptitud;          /* suma de la aptitud de toda la población */
 
    string outputDir;
+   string inputDir;            /* sirve en el caso de que previamente exista un controlador entrenado del que se deba derivar la poblacion*/
    ofstream archVariables;
    ofstream archEvaluacion;
 
