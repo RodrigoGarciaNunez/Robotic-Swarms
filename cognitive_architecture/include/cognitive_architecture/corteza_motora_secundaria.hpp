@@ -7,12 +7,16 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <random>
 #include "cognitive_architecture/Red_Neuronal/NeuroControllerDriver.hpp"
 #include <cstdlib> // Necesario para system()
 #include <cstdio>
 #include "arlo_interfaces/msg/pesos_struct.hpp"
 #include "arlo_interfaces/msg/estado_arlo.hpp"
 #include <cstring>
+#include <sys/stat.h>
 
 using std::placeholders::_1;
 // #include "cognitive_architecture/SimulationController.h"
@@ -41,20 +45,27 @@ public:
       // este de arriba debe recibir los valores de los 4 sensores y la posicion de arlo
 
       char archivo[50];
-      if (std::string(1, tipo) == "1"){
-         std::sprintf(archivo, "./archivo_pesos_predeterminado.txt");   
+      if (std::string(1, tipo) == "1")
+      {
+         std::sprintf(archivo, "./archivo_pesos_predeterminado.txt");
       }
-      else{
+      else
+      {
          std::sprintf(archivo, "./archivo_pesos_%d.txt", identificador);
       }
-      
+
+      if (!fileExists(archivo))
+      {
+         std::cerr << "no existe un archivo entrenado" << std::endl;
+         genera_pesos();
+      }
+
       redNeuronal.setParameters(archivo);
 
       // auto pesos = arlo_interfaces::msg::PesosStruct();
       // pesos.pesos = {1, 2, 3, 4, 5, 6, 5};
       // redNeuronal.vectorEnvia(pesos.pesos);
       // publisher_evo_->publish(pesos);
-      
    }
 
 private:
@@ -62,23 +73,23 @@ private:
    {
       std_msgs::msg::Float64MultiArray vector_reaction;
       // RCLCPP_INFO(this->get_logger(), "me llego el mensaje %f", msg.range);
-      //mensajes_recibidos.push_back(msg);
+      // mensajes_recibidos.push_back(msg);
 
       // if (mensajes_recibidos.size() < 5)
       // { // espera a que le lleguen los 4 mensajes (4 sensores y 1 odom)
       //    return;
       // }
 
-      for(int i=0; i< msg.sensor1.ranges.size(); i++){
+      for (int i = 0; i < msg.sensor1.ranges.size(); i++)
+      {
          entradas.push_back(msg.sensor1.ranges[i]);
          entradas.push_back(msg.sensor2.ranges[i]);
          entradas.push_back(msg.sensor3.ranges[i]);
          entradas.push_back(msg.sensor4.ranges[i]);
       }
-         
-      
-      entradas.push_back(0.0- (msg.odom.pose.pose.position.x));
-      entradas.push_back(0.0 -(msg.odom.pose.pose.position.y));
+
+      entradas.push_back(0.0 - (msg.odom.pose.pose.position.x));
+      entradas.push_back(0.0 - (msg.odom.pose.pose.position.y));
 
       // for (auto entrada : entradas)
       // {
@@ -107,7 +118,7 @@ private:
 
       publisher_NN->publish(vector_reaction);
       ///////////////////////////////////////////////////////////////////////////////////////////////77
-      
+
       for (auto mensaje : mensajes_recibidos)
       {
          publisher_->publish(mensaje.sensor1);
@@ -129,6 +140,27 @@ private:
    {
       RCLCPP_INFO(this->get_logger(), "me llegaron mis nuevos pesos ->%s", msg.data.c_str());
       redNeuronal.setParameters(msg.data.c_str());
+   }
+
+   bool fileExists(std::string path)
+   {
+      struct stat info;
+      return (stat(path.c_str(), &info) == 0 && !(info.st_mode & S_IFDIR));  //comprueba la existencia de un archivo, no de un directorio
+   }
+
+   void genera_pesos()
+   {
+
+      std::ofstream archivo("archivo_pesos_" + std::to_string(identificador) + ".txt"); // por el momento, al crearse este nodo, se crea un archivo con pesos aleatorios para cada robot
+      std::random_device rd;
+      std::mt19937 gen(rd());                               // Motor mersenne_twister_engine
+      std::uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 100
+
+      archivo << "98 2 0\n";
+      for (int i = 0; i < 98; i++)
+      {
+         archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
+      }
    }
 
    rclcpp::Subscription<arlo_interfaces::msg::EstadoArlo>::SharedPtr subscription_; // aqui se declara al suscriptor

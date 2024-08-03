@@ -15,6 +15,7 @@ public:
     Individuo();
 
     void insuflar(ProblemaOptim* p, int precision);
+    void iniciaInfo(ProblemaOptim* p, int precision);
     //void insuflar(int precision);
     void decodificar();
     //void x2cromosoma(ProblemaOptim* p);

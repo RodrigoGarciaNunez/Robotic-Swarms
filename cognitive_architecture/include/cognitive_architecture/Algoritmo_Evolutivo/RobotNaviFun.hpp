@@ -112,6 +112,7 @@ void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
     {
         archivo << weights[i] << " " << weights[i+1] << "\n";
     }
+    archivo.close();
 }
 
 // void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
