@@ -8,6 +8,7 @@ from nav_msgs.msg import Odometry
 import random as rd
 from std_msgs.msg import Float32MultiArray
 from arlo_interfaces.msg import EstadoArlo
+from arlo_interfaces.msg import MatesOdom
 from rclpy.executors import SingleThreadedExecutor
 
 # def ejecutar_despues_del_constructor(cls):
@@ -24,7 +25,10 @@ class temporal_lobe(Node):
     def __init__(self,i, tipo):
         super().__init__("temporal_lobe_"+str(i)+tipo)
 
-        self.mensajes_recibidos_list=[0]*5
+        self.i = i
+        self.tipo = tipo
+
+        self.mensajes_recibidos_list=[0]* (5) #al 5 hay que sumarle la cantidad de compañeritos
         self.mensajes_recibidos = 0
         self.diccionario_sensores = {'link_sensor_center': 1, 'link_sensor_back': 2, 'link_sensor_right': 3, 'link_sensor_left': 4}
 
@@ -34,9 +38,10 @@ class temporal_lobe(Node):
         self.suscriptor3 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico3/out", self.procesa3, 10)
         self.suscriptor4 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico4/out", self.procesa4, 10)
         self.suscriptorOdom = self.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.checaOdom, 10)
-
-        self.nodoOdom = rclpy.create_node("oyente_odom_tp_"+str(i)+tipo)
-        suscriptorOdom = self.nodoOdom.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.checaOdom, 10)
+        self.susMates = self.create_subscription(MatesOdom,"MatesOdom", self.procesaMatesOdom, 10)
+        self.pubMates =  self.create_publisher(MatesOdom,"MatesOdom",10)
+        #self.nodoOdom = rclpy.create_node("oyente_odom_tp_"+str(i)+tipo)
+        #suscriptorOdom = self.nodoOdom.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.checaOdom, 10)
         
         # self.executor = SingleThreadedExecutor()
         # self.executor.(self.nodoOdom)
@@ -44,8 +49,18 @@ class temporal_lobe(Node):
         print("se hizo el constructor")
 
 
+    def procesaMatesOdom(self, odoms:MatesOdom):
+        
+        #print("me llegó un estado de"+ odoms.name)
+        #print(odoms.odom)
+        pass
+
     def checaOdom(self, odom:Odometry):
         self.mensajes_recibidos_list[4]=odom
+        estado = MatesOdom()
+        estado.odom = odom
+        estado.name = str(self.i)+str(self.tipo)
+        self.pubMates.publish(estado)
         ##estado = EstadoArlo()
         ##estado.odom=odom
         #print(f"odometria {odom.pose.pose.position.x}")
@@ -90,6 +105,9 @@ class temporal_lobe(Node):
             #self.mensajes_recibidos_list = [0] * 5
             self.mensajes_recibidos = 0
     
+
+    def calculaDistsPromedio(self):
+        pass
 
     def procesaAll(self):
         estado = EstadoArlo()
