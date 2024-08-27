@@ -22,16 +22,17 @@ def main(args=None):
     rclpy.init(args=args) #inicia comunicaciones de ros2
 
     if args is None:
-        import sys
         args = sys.argv[1:] 
     
-    limite=2
     if args[0]=="1":
-        limite=3
+        num_bots=3
+
+    else:
+        num_bots=int(args[1])
 
     nodos_control=[]
     nodos_tl=[]
-    for i in range(1,limite):
+    for i in range(1,num_bots+1):
         nodo = ci(i,args[0])
         lobulo_t = tl(i,args[0])
         nodos_control.append(nodo)

@@ -72,7 +72,7 @@ void remSignal(int signal){
 int main(int argc, char **argv){
     
 
-    if (argc < 2){
+    if (argc < 3){
         std::cerr << "falta indicar qué tipo de nodos serán: 0=individuos 1=dummys" << std::endl;
 
         return 0;
@@ -88,19 +88,20 @@ int main(int argc, char **argv){
 
     std::signal(SIGUSR1, remSignal);
     int tipo = std::atoi(argv[1]);
+    int num_bots = std::atoi(argv[2]);
     //RobotNaviFun* p = new RobotNaviFun();
     //ParamsGA params;
     //ros::init(argc, argv, "neurocontroller_node");
     //int arg = std::stoi(argv[1]);
     //cerr << arg << endl;
-    int limite=2;
+    //int limite=2;
     if(tipo==1){
-        limite=3;
+        num_bots=3;
     }
     std::vector<std::shared_ptr<rclcpp::Node>> nodes_cms;
     //std::vector<std::shared_ptr<rclcpp::Node>> nodes_cp;
     // Crear nodos y agregarlos a la lista
-    for(int i=1; i< limite; i++){
+    for(int i=1; i< num_bots+1; i++){
         nodes_cms.push_back(std::make_shared<cmSec>(i,*argv[1]));
     }
     //nodes_cms.push_back(std::make_shared<cmSec>(1));

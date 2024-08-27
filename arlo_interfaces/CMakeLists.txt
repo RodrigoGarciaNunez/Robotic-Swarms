@@ -9,13 +9,15 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PesosStruct.msg"
   "msg/EstadoArlo.msg"
+  "msg/MatesOdom.msg"
   "srv/EvaluateDriver.srv"
-  DEPENDENCIES sensor_msgs nav_msgs 
+  DEPENDENCIES sensor_msgs nav_msgs std_msgs 
 )
 
 ament_export_dependencies(rosidl_default_runtime)
