@@ -108,46 +108,6 @@ def generate_launch_description(args = None):
     bot_kind_arg = DeclareLaunchArgument('bot_kind', default_value='0')
     num_bots_arg = DeclareLaunchArgument('num_bots', default_value='1')
 
-    #num_bots = int(LaunchConfiguration('num_bots').perform(context=))
-    #bot_kind = int(LaunchConfiguration('bot_kind').perform(context=))
-
-    #bots = {}
-    #for i in range(1, num_bots):
-    #    bots[i] = f"robot{i}{bot_kind}"
-
-    # robots = [
-    #     {"name": "robot10"}
-    #     #{"name": "robot2"}
-    #     #{"name": "robot3"},
-    #     #{"name": "robot4"},
-    #     #{"name": "robot5"},
-    #     #{"name": "robot6"}
-    # ]
-    # spawn_nodes = []
-
-    # x=-7
-    # y=-14
-    
-    # for robot in bots.values():
-    #     spawn_node = Node(
-    #         package='gazebo_ros',
-    #         executable='spawn_entity.py',
-    #         namespace=robot,
-    #         arguments=[
-    #             "-entity", robot,
-    #             "-x", str(x),
-    #             "-y", str(y),
-    #             "-z", '0.05',
-    #             "-Y", '0.0',
-    #             "-file", "/home/rodrigo/ros2_iron/src/cognitive_architecture/models/arlo/model.sdf",
-    #             "-robot_namespace", robot
-    #             #"--ros-args", "--remap", "ultrasonico1:=pedro"
-    #         ]
-    #     )
-    #     spawn_nodes.append(spawn_node)
-    #     x=x+5
-
-    # ld = LaunchDescription(spawn_nodes)
 
     ldw = LaunchDescription()
     ldw.add_action(declare_world_cmd)
@@ -176,8 +136,8 @@ def generate_launch_description(args = None):
     #start_joint_state_publisher_cmd, 
     #robot_state_publisher_node,
     gazebo,
-    controladorPython,
-    controladorcpp,
+    #controladorPython,
+    #controladorcpp,
     OpaqueFunction(function=create_bots)
 ])
 

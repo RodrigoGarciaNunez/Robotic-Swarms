@@ -22,14 +22,17 @@ from rclpy.executors import SingleThreadedExecutor
 #@ejecutar_despues_del_constructor
 class temporal_lobe(Node):
     
-    def __init__(self,i, tipo):
+    def __init__(self,i, tipo, numMates):
         super().__init__("temporal_lobe_"+str(i)+tipo)
 
         self.i = i
         self.tipo = tipo
+        self.numMates = numMates
 
-        self.mensajes_recibidos_list=[0]* (5) #al 5 hay que sumarle la cantidad de compañeritos
+        self.mensajes_recibidos_list=[0]* (4+numMates) #al 5 hay que sumarle la cantidad de compañeritos - 1
         self.mensajes_recibidos = 0
+        self.mensajes_por_recibir = len(self.mensajes_recibidos_list)
+        #self.posiciones_mates
         self.diccionario_sensores = {'link_sensor_center': 1, 'link_sensor_back': 2, 'link_sensor_right': 3, 'link_sensor_left': 4}
 
         self.publisher =  self.create_publisher(EstadoArlo,"robot"+str(i)+tipo+"/temporal_lobe_",10)
@@ -51,27 +54,29 @@ class temporal_lobe(Node):
 
     def procesaMatesOdom(self, odoms:MatesOdom):
         
-        #print("me llegó un estado de"+ odoms.name)
-        #print(odoms.odom)
-        pass
+        split = list(odoms.name)
+        
+        #print(split[0])
+        self.mensajes_recibidos_list[int(split[0])+3] = odoms.odom
+        self.mensajes_recibidos +=1
+
+        if(self.mensajes_recibidos == self.mensajes_por_recibir):
+            self.procesaAll()
+            self.mensajes_recibidos=0
+    
 
     def checaOdom(self, odom:Odometry):
-        self.mensajes_recibidos_list[4]=odom
         estado = MatesOdom()
         estado.odom = odom
         estado.name = str(self.i)+str(self.tipo)
         self.pubMates.publish(estado)
-        ##estado = EstadoArlo()
-        ##estado.odom=odom
-        #print(f"odometria {odom.pose.pose.position.x}")
-        #self.publisher.publish(estado)
 
 
     def procesa1(self, rango:LaserScan):  #link_sensor_center
         #print(rango.ranges)
         self.mensajes_recibidos_list[0]=rango
         self.mensajes_recibidos +=1
-        if(self.mensajes_recibidos == 4):
+        if(self.mensajes_recibidos == self.mensajes_por_recibir):
             self.procesaAll()
             #self.mensajes_recibidos_list = [0] * 5
             self.mensajes_recibidos = 0
@@ -81,7 +86,7 @@ class temporal_lobe(Node):
         #print(rango.ranges)
         self.mensajes_recibidos_list[1]=rango
         self.mensajes_recibidos +=1
-        if(self.mensajes_recibidos == 4):
+        if(self.mensajes_recibidos == self.mensajes_por_recibir):
             self.procesaAll()
             #self.mensajes_recibidos_list = [0] * 5
             self.mensajes_recibidos = 0
@@ -90,7 +95,7 @@ class temporal_lobe(Node):
         #print(rango.ranges)
         self.mensajes_recibidos_list[2]=rango
         self.mensajes_recibidos +=1
-        if(self.mensajes_recibidos == 4):
+        if(self.mensajes_recibidos == self.mensajes_por_recibir):
             self.procesaAll()
             #self.mensajes_recibidos_list = [0] * 5
             self.mensajes_recibidos = 0
@@ -100,7 +105,7 @@ class temporal_lobe(Node):
         #print(rango.ranges)
         self.mensajes_recibidos_list[3]=rango
         self.mensajes_recibidos +=1
-        if(self.mensajes_recibidos == 4):
+        if(self.mensajes_recibidos == self.mensajes_por_recibir):
             self.procesaAll()
             #self.mensajes_recibidos_list = [0] * 5
             self.mensajes_recibidos = 0
@@ -120,16 +125,16 @@ class temporal_lobe(Node):
         estado.sensor2 = self.mensajes_recibidos_list[1]
         estado.sensor3 = self.mensajes_recibidos_list[2]
         estado.sensor4 = self.mensajes_recibidos_list[3]
-        estado.odom= self.mensajes_recibidos_list[4]
+        estado.odom= self.mensajes_recibidos_list[(int(self.i))+3]   # con self.i, obtenemos la posicion de la odometría que le corresponde a bot self
 
         # self.mensajes_recibidos_list = [0] * 5
         # self.mensajes_recibidos = 0
 
-        print("Estado a publicar:")
-        print("Sensor 1:", estado.sensor1)
-        print("Sensor 2:", estado.sensor2)
-        print("Sensor 3:", estado.sensor3)
-        print("Sensor 4:", estado.sensor4)
+        # print("Estado a publicar:")
+        # print("Sensor 1:", estado.sensor1)
+        # print("Sensor 2:", estado.sensor2)
+        # print("Sensor 3:", estado.sensor3)
+        # print("Sensor 4:", estado.sensor4)
         print("Odometría:", estado.odom)
 
         # for mensaje in self.mensajes_recibidos_list:
