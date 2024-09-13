@@ -14,7 +14,11 @@
 #include <csignal>
 #include <cstdlib>
 #include "std_srvs/srv/empty.hpp"
+ 
 
+int tipo;
+int task;
+int num_bots;
 
 void remSignal(int signal){
 
@@ -33,7 +37,7 @@ void remSignal(int signal){
     for(int i=1; i<2; i++){
         RobotNaviFun* p = new RobotNaviFun();
         ParamsGA params;
-        nodes_cp.push_back(std::make_shared<cp>(i, p, params, &bandera));
+        nodes_cp.push_back(std::make_shared<cp>(i, p, params, &bandera, task));
         //executor.add_node(nodes_cp[i-1]);
     }
     //std::shared_ptr<rclcpp::Node> server = std::make_shared<srvEvaluateDriver>();
@@ -72,8 +76,8 @@ void remSignal(int signal){
 int main(int argc, char **argv){
     
 
-    if (argc < 3){
-        std::cerr << "falta indicar qué tipo de nodos serán: 0=individuos 1=dummys" << std::endl;
+    if (argc < 4){
+        std::cerr << "Faltó un argumento: cpp_exe tipo num_bots task" << std::endl;
 
         return 0;
     }
@@ -87,14 +91,10 @@ int main(int argc, char **argv){
     rclcpp::init(argc, argv);
 
     std::signal(SIGUSR1, remSignal);
-    int tipo = std::atoi(argv[1]);
-    int num_bots = std::atoi(argv[2]);
-    //RobotNaviFun* p = new RobotNaviFun();
-    //ParamsGA params;
-    //ros::init(argc, argv, "neurocontroller_node");
-    //int arg = std::stoi(argv[1]);
-    //cerr << arg << endl;
-    //int limite=2;
+    tipo = std::atoi(argv[1]);
+    num_bots = std::atoi(argv[2]);
+    task = std::atoi(argv[3]);
+    
     if(tipo==1){
         num_bots=3;
     }
@@ -102,7 +102,7 @@ int main(int argc, char **argv){
     //std::vector<std::shared_ptr<rclcpp::Node>> nodes_cp;
     // Crear nodos y agregarlos a la lista
     for(int i=1; i< num_bots+1; i++){
-        nodes_cms.push_back(std::make_shared<cmSec>(i,*argv[1]));
+        nodes_cms.push_back(std::make_shared<cmSec>(i,*argv[1],task));
     }
     //nodes_cms.push_back(std::make_shared<cmSec>(1));
     //nodes_cms.push_back(std::make_shared<cmSec>(2));

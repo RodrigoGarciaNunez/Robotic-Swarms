@@ -110,7 +110,7 @@ void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
 
     for (int i = 0; i < 196; i+=2)
     {
-        archivo << weights[i] << " " << weights[i+1] << "\n";
+        archivo << weights[i] << " " << weights[i+1] << " ";
     }
     archivo.close();
 }

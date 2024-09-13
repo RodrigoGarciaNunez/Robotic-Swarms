@@ -18,7 +18,7 @@ from launch.event_handlers import OnProcessExit
 def create_bots(context, *args, **kwargs):
     # Obtener valores de las configuraciones
     num_bots = int(LaunchConfiguration('num_bots').perform(context))
-    bot_kind = LaunchConfiguration('bot_kind').perform(context)
+    bot_kind = LaunchConfiguration('bot_kind').perform(context)   #0= real, 1 = dummy
 
     bots = {}
     for i in range(1, num_bots + 1):
@@ -47,7 +47,7 @@ def create_bots(context, *args, **kwargs):
             ]
         )
         spawn_nodes.append(spawn_node)
-        x=x+5
+        x=x+3
 
     return spawn_nodes
     #ld = LaunchDescription(spawn_nodes)
@@ -107,6 +107,7 @@ def generate_launch_description(args = None):
  
     bot_kind_arg = DeclareLaunchArgument('bot_kind', default_value='0')
     num_bots_arg = DeclareLaunchArgument('num_bots', default_value='1')
+    task = DeclareLaunchArgument('task', default_value='1')
 
 
     ldw = LaunchDescription()
@@ -119,16 +120,19 @@ def generate_launch_description(args = None):
 
 
     controladorPython  = ExecuteProcess(
-        cmd=['ros2', 'run', 'cognitive_architecture', 'Controlador_individuo.py',LaunchConfiguration('bot_kind'), LaunchConfiguration('num_bots')], output='screen'
+        cmd=['ros2', 'run', 'cognitive_architecture', 'Controlador_individuo.py',LaunchConfiguration('bot_kind'), LaunchConfiguration('num_bots'),
+              LaunchConfiguration('task')], output='screen'
     )
 
     controladorcpp = ExecuteProcess(
-        cmd=['ros2', 'run', 'cognitive_architecture', 'cpp_exe', LaunchConfiguration('bot_kind'), LaunchConfiguration('num_bots')], output='screen'
+        cmd=['ros2', 'run', 'cognitive_architecture', 'cpp_exe', LaunchConfiguration('bot_kind'), LaunchConfiguration('num_bots'),
+             LaunchConfiguration('task')], output='screen'
     )
 
     return LaunchDescription([
     bot_kind_arg,
     num_bots_arg,
+    #task,
     declare_use_sim_time_cmd,
     #ld,
     #spawn,
@@ -136,9 +140,9 @@ def generate_launch_description(args = None):
     #start_joint_state_publisher_cmd, 
     #robot_state_publisher_node,
     gazebo,
-    #controladorPython,
+    OpaqueFunction(function=create_bots),
     #controladorcpp,
-    OpaqueFunction(function=create_bots)
+    #controladorPython
 ])
 
 #https://www.youtube.com/watch?v=x-s0jUZJ4rQ&list=PL3AvrhrDIyfHIPE1RS63ve4JltbWpO5uF&index=2

@@ -47,7 +47,7 @@ public:
 //     };
 
 
-   GeneticoSimple(ProblemaOptim*, ParamsGA&, int id);
+   GeneticoSimple(ProblemaOptim*, ParamsGA&, int id, int task_);
    ~GeneticoSimple();
    void optimizar();
 
@@ -75,6 +75,7 @@ private:
    int flip(double prob);
 
    int id;                      /*identificador del genetico*/
+   int task;
 
    ProblemaOptim* problema;    /* el problema que se resolverá */
    Individuo* oldpop;         /* última generación de individuos */
