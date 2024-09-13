@@ -17,18 +17,26 @@
 #include "arlo_interfaces/msg/estado_arlo.hpp"
 #include <cstring>
 #include <sys/stat.h>
+#include <map>
 
 using std::placeholders::_1;
+//using namespace std;
 // #include "cognitive_architecture/SimulationController.h"
 
 // este nodo contiene la red neuronal que se encarga de decidir los movimientos del robot
 // cmSec es corteza motora Secundaria
 
+static   std::map<int, std::vector<int>> task_map = {
+        {1, {98,2}},   // 1.- Desplazamiento individula
+        {2, {99,2}}    // 2.- Desplazamiento en grupo
+    };
+
 class cmSec : public rclcpp::Node
 {
 
 public:
-   cmSec(int i, char tipo) : Node("Corteza_motora_secundaria_" + std::to_string(i) + tipo), identificador(i), redNeuronal(98, 2, rangos_salidas)
+   cmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + std::to_string(i) + tipo), identificador(i), task(task),
+   redNeuronal(task_map[task][0],task_map[task][1], rangos_salidas)
    {
 
       std::cerr << tipo << std::endl;
@@ -47,17 +55,17 @@ public:
       char archivo[50];
       if (std::string(1, tipo) == "1")
       {
-         std::sprintf(archivo, "./archivo_pesos_predeterminado.txt");
+         std::sprintf(archivo, "./archivo_pesos_predeterminado_%d.txt", task);
       }
       else
       {
-         std::sprintf(archivo, "./archivo_pesos_%d.txt", identificador);
+         std::sprintf(archivo, "./archivo_pesos_%d_%d.txt", identificador, task);
       }
 
       if (!fileExists(archivo))
       {
          std::cerr << "no existe un archivo entrenado" << std::endl;
-         genera_pesos();
+         genera_pesos(archivo);
       }
 
       redNeuronal.setParameters(archivo);
@@ -91,6 +99,10 @@ private:
       entradas.push_back(0.0 - (msg.odom.pose.pose.position.x));
       entradas.push_back(0.0 - (msg.odom.pose.pose.position.y));
 
+      if(task==2){  //si la tarea involucra la distancia a los compañeros
+         entradas.push_back(msg.dist_to_mates);
+      }
+      
       // for (auto entrada : entradas)
       // {
       //    RCLCPP_INFO(this->get_logger(), "entrada %f", entrada);
@@ -148,16 +160,17 @@ private:
       return (stat(path.c_str(), &info) == 0 && !(info.st_mode & S_IFDIR));  //comprueba la existencia de un archivo, no de un directorio
    }
 
-   void genera_pesos()
+   void genera_pesos(const char * archivo_name)
    {
 
-      std::ofstream archivo("archivo_pesos_" + std::to_string(identificador) + ".txt"); // por el momento, al crearse este nodo, se crea un archivo con pesos aleatorios para cada robot
+      //std::ofstream archivo("archivo_pesos_" + std::to_string(identificador) +"_"+std::to_string(task)+".txt"); // por el momento, al crearse este nodo, se crea un archivo con pesos aleatorios para cada robot
+      std::ofstream archivo(archivo_name);
       std::random_device rd;
       std::mt19937 gen(rd());                               // Motor mersenne_twister_engine
       std::uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 100
 
-      archivo << "98 2 0\n";
-      for (int i = 0; i < 98; i++)
+      archivo <<  std::to_string(task_map[task][0])+" "+std::to_string(task_map[task][1])+" 0\n";
+      for (int i = 0; i < task_map[task][0]; i++)
       {
          archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
       }
@@ -169,6 +182,9 @@ private:
    rclcpp::Publisher<arlo_interfaces::msg::PesosStruct>::SharedPtr publisher_evo_;
    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscriber_evo;
    std::vector<arlo_interfaces::msg::EstadoArlo> mensajes_recibidos;
+   int task;
+   int id;
+   int tipo;
    std::vector<double> entradas;
    int identificador;
    NeuroControllerDriver redNeuronal;

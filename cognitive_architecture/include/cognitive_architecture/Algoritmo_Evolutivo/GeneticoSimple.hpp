@@ -8,7 +8,7 @@
 
 // Definición de la clase GeneticoSimple
 // Constructor de la clase
-GeneticoSimple::GeneticoSimple(ProblemaOptim *p, ParamsGA &params, int id)
+GeneticoSimple::GeneticoSimple(ProblemaOptim *p, ParamsGA &params, int id, int task_)
 {
     // Inicialización de parámetros y variables
     problema = p;
@@ -17,6 +17,7 @@ GeneticoSimple::GeneticoSimple(ProblemaOptim *p, ParamsGA &params, int id)
     Pc = params.Pc;
     Pm = params.Pm;
     precision = params.precision;
+    task = task_;
 
     random_device rd;
     rng = std::mt19937(std::random_device{}());
@@ -30,7 +31,7 @@ GeneticoSimple::GeneticoSimple(ProblemaOptim *p, ParamsGA &params, int id)
     valores = {5, 2, 10, 1, 4};
 
     outputDir = "./salidafinal/";
-    inputDir = "./archivo_pesos_" + std::to_string(id) + ".txt";
+    inputDir = "./archivo_pesos_" + std::to_string(id) + "_" + std::to_string(task) + ".txt";
     // Comprobación y creación del directorio de salida
     if (!dirExists(outputDir))
     {
@@ -71,10 +72,10 @@ bool GeneticoSimple::dirExists(std::string path)
 }
 
 bool GeneticoSimple::fileExists(std::string path)
-   {
-      struct stat info;
-      return (stat(path.c_str(), &info) == 0 && !(info.st_mode & S_IFDIR));  //comprueba la existencia de un archivo, no de un directorio
-   }
+{
+    struct stat info;
+    return (stat(path.c_str(), &info) == 0 && !(info.st_mode & S_IFDIR)); // comprueba la existencia de un archivo, no de un directorio
+}
 
 // Método principal para la optimización utilizando el algoritmo genético
 void GeneticoSimple::optimizar()
@@ -82,7 +83,7 @@ void GeneticoSimple::optimizar()
     Individuo *temp;
     // Reporte inicial de estadísticas
     // stats.initial_report(this->get_logger(), popSize, Gmax, Pc, Pm);
-    std::cerr << "entre a optimizar" << std::endl;
+    // std::cerr << "entre a optimizar" << std::endl;
     // Inicialización de la población
     gen = 1;
     inicalizarPob();
@@ -90,8 +91,8 @@ void GeneticoSimple::optimizar()
     elitismo(oldpop, gen);
     stats.statistics(oldpop, popSize);
 
-    std::cerr << "incialice la poblacion" << std::endl;
-    // Bucle principal de optimización
+    // std::cerr << "incialice la poblacion" << std::endl;
+    //  Bucle principal de optimización
     for (gen = 2; gen <= Gmax; gen++)
     {
         seleccionPadres(oldpop);
@@ -136,72 +137,69 @@ void GeneticoSimple::inicalizarPob()
     if (fileExists(inputDir))
     {
         std::cerr << "hola, ya existe un controlador previamente entrenado llamado" << inputDir << std::endl;
-        
-        for(unsigned j=0 ; j < popSize; j++)
+
+        for (unsigned j = 0; j < popSize; j++)
         {
             oldpop[j].iniciaInfo(problema, precision);
             newpop[j].iniciaInfo(problema, precision);
         }
 
-
-        
-
         ifstream weightsFile;
         weightsFile.open(inputDir, std::ifstream::in);
-        
+
         char buffer[7];
         weightsFile.getline(buffer, 7);
 
         double peso;
-        unsigned k=0;
-        while (weightsFile >> peso) {
-            oldpop[0].x[k]=peso;
-            newpop[0].x[k]=peso;
+        unsigned k = 0;
+        while (weightsFile >> peso)
+        {
+            oldpop[0].x[k] = peso;
+            newpop[0].x[k] = peso;
             k++;
         }
 
         weightsFile.close();
 
-        std::cerr << "impresion de los pesos leidos" << std::endl;
-        std::cerr << "tamaño de x " << oldpop[0].x.size() <<std::endl;
+        // std::cerr << "impresion de los pesos leidos" << std::endl;
+        // std::cerr << "tamaño de x " << oldpop[0].x.size() <<std::endl;
 
-        for(int i=0; i<oldpop[0].x.size(); i++){
-            std::cerr << oldpop[0].x[i] << " ";
-        }
-        std::cerr << std::endl;
+        // for(int i=0; i<oldpop[0].x.size(); i++){
+        //     std::cerr << oldpop[0].x[i] << " ";
+        // }
+        // std::cerr << std::endl;
 
-        //std::cerr << "pase de inicia Info" << std::endl;
+        // std::cerr << "pase de inicia Info" << std::endl;
         oldpop[0].x2cromosoma();
 
-        std::copy(oldpop[0].cromo.begin(), oldpop[0].cromo.end(), std::ostream_iterator<int>(std::cerr, " "));
-        std::cerr << std::endl;
-        //std::cerr << "pase de x2cromo" << std::endl;
+        // std::copy(oldpop[0].cromo.begin(), oldpop[0].cromo.end(), std::ostream_iterator<int>(std::cerr, " "));
+        // std::cerr << std::endl;
+        // std::cerr << "pase de x2cromo" << std::endl;
 
-        for (unsigned j=1; j < popSize; j++)
+        for (unsigned j = 1; j < popSize; j++)
         {
-            //std::cerr << j << std::endl;
+            // std::cerr << j << std::endl;
             oldpop[j].copiar(&oldpop[0]);
-            //std::cerr << j << std::endl;
+            // std::cerr << j << std::endl;
             newpop[j].copiar(&oldpop[0]);
-            //std::cerr << j << std::endl;
+            // std::cerr << j << std::endl;
         }
-        
-        auxPm = Pm;
-        Pm = 0.05;       /* mutación muy pequeña para dar un poco de variedad a la población */
-        mutacion(oldpop);
-        Pm = auxPm;       
 
+        auxPm = Pm;
+        Pm = 0.05; /* mutación muy pequeña para dar un poco de variedad a la población */
+        mutacion(oldpop);
+        Pm = auxPm;
     }
 
     else
     {
         for (int j = 1; j < popSize; j++)
         {
-            //std::cerr << j << std::endl;
+            // std::cerr << j << std::endl;
             oldpop[j].insuflar(problema, precision);
-            //std::cerr << j << std::endl;
+            // std::cerr << j << std::endl;
             newpop[j].insuflar(problema, precision);
-            //std::cerr << j << std::endl;
+            // std::cerr << j << std::endl;
         }
     }
 
@@ -213,27 +211,29 @@ void GeneticoSimple::inicalizarPob()
 // Método para evaluar la población
 void GeneticoSimple::evaluarPoblacion(Individuo *pop)
 {
+    if (task != 1)  //en caso de que no sea necesario agregar dummies
+    {
+        std::system("ros2 launch cognitive_architecture dummys.launch.py num_bots:=2 > /dev/null");
 
-    // std::system("ros2 launch cognitive_architecture dummys.launch.py  > /dev/null");
+        std::vector<std::string> comandos = {
+            // dev/null es para que no se imprima en terminal
+            "ros2 run cognitive_architecture cpp_exe 1 2 1 > /dev/null",
+            "ros2 run cognitive_architecture Controlador_individuo.py 1 2 1 > /dev/null"};
 
-    // std::vector<std::string> comandos = {
-    //     // dev/null es para que no se imprima en terminal
-    //     "ros2 run cognitive_architecture cpp_exe 1 > /dev/null",
-    //     "ros2 run cognitive_architecture Controlador_individuo.py 1 /dev/null"};
+        std::vector<std::thread> threads;
 
-    // std::vector<std::thread> threads;
+        // Crear un hilo para cada comando en la lista
+        for (const auto &comando : comandos)
+        {
+            threads.emplace_back([this, comando]()
+                                 { std::system(comando.c_str()); });
+        }
 
-    // // Crear un hilo para cada comando en la lista
-    // for (const auto &comando : comandos)
-    // {
-    //     threads.emplace_back([this, comando]()
-    //                          { std::system(comando.c_str()); });
-    // }
-
-    // for (auto &thread : threads)
-    // {
-    //     thread.detach();
-    // }
+        for (auto &thread : threads)
+        {
+            thread.detach();
+        }
+    }
 
     for (int i = 0; i < popSize; ++i)
     {
@@ -350,15 +350,12 @@ void GeneticoSimple::mutacion(Individuo *pop)
     for (int j = 0; j < popSize; j++)
     {
         pop[j].nMutaciones = mutacionUniforme(pop[j].cromo);
-        std::cerr << "voy bien "<< std::endl;
         pop[j].decodificar();
-        std::cerr << "mamé "<< std::endl;
 
-        if (pop[j].nMutaciones > 0){
+        if (pop[j].nMutaciones > 0)
+        {
             stats.nmutaciones++;
         }
-            
-        std::cerr << "j " << j << std::endl;
     }
 
     std::uniform_int_distribution<int> unif(0, popSize - 1);
@@ -371,7 +368,7 @@ void GeneticoSimple::mutacion(Individuo *pop)
 int GeneticoSimple::mutacionUniforme(Cromosoma &cromo)
 {
     int numMutations = 0;
-    std::cerr << "cromosize " << cromo.size() << std::endl;
+    // std::cerr << "cromosize " << cromo.size() << std::endl;
     for (unsigned k = 0; k < cromo.size(); k++)
     {
         if (flip(Pm))
@@ -379,7 +376,7 @@ int GeneticoSimple::mutacionUniforme(Cromosoma &cromo)
             numMutations++;
             cromo[k] = (cromo[k] == 0) ? 1 : 0;
         }
-        //std::cerr << "k " << k << std::endl;
+        // std::cerr << "k " << k << std::endl;
     }
 
     return numMutations;

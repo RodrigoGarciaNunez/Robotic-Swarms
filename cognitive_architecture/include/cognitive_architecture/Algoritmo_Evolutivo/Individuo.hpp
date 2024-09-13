@@ -146,7 +146,7 @@ void Individuo::x2cromosoma() {
     double d;    // representación real del entero.
     int entero;  // redondeo del valor d.
     int finGene, inicioGene = 0;
-    std::cerr << cromo.size() << std::endl;
+    //std::cerr << cromo.size() << std::endl;
     for (int i = 0; i < x.size(); i++) {
         Range r = xRanges[i];
 
@@ -173,11 +173,11 @@ void Individuo::x2cromosoma() {
                 exit(0);
             }
             //std::cerr << "entero " << entero  <<std::endl;
-            std::cerr <<cromo[j] << " ";
+            //std::cerr <<cromo[j] << " ";
             //std::cerr << std::endl;
             
         }
-        std::cerr << std::endl;
+        //std::cerr << std::endl;
         inicioGene += geneSizes[i];
     }
 }

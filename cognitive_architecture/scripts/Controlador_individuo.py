@@ -30,11 +30,13 @@ def main(args=None):
     else:
         num_bots=int(args[1])
 
+    task = int(args[2])
+
     nodos_control=[]
     nodos_tl=[]
     for i in range(1,num_bots+1):
         nodo = ci(i,args[0])
-        lobulo_t = tl(i,args[0],num_bots)
+        lobulo_t = tl(i,args[0],num_bots, task)
         nodos_control.append(nodo)
         nodos_tl.append(lobulo_t)
 
