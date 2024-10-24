@@ -29,13 +29,8 @@ void remSignal(int signal){
 
     std::vector<std::shared_ptr<rclcpp::Node>> nodes_cp;
     
-
-    // std::cerr<< "soy la senal de rem" << std::endl;
-    //auto client = rclcpp::Node::make_shared("activacion_client");
-    //auto service;
-    // 
     for(int i=1; i<2; i++){
-        RobotNaviFun* p = new RobotNaviFun();
+        RobotNaviFun* p = new RobotNaviFun(task);
         ParamsGA params;
         nodes_cp.push_back(std::make_shared<cp>(i, p, params, &bandera, task));
         //executor.add_node(nodes_cp[i-1]);
@@ -63,7 +58,7 @@ void remSignal(int signal){
 
     //executor
 
-    std::shared_ptr<rclcpp::Node> server = std::make_shared<srvEvaluateDriver>();
+    std::shared_ptr<rclcpp::Node> server = std::make_shared<srvEvaluateDriver>(task);
     rclcpp::spin(server);
 
     for (auto& thread : threadsc) {
@@ -95,9 +90,9 @@ int main(int argc, char **argv){
     num_bots = std::atoi(argv[2]);
     task = std::atoi(argv[3]);
     
-    if(tipo==1){
-        num_bots=3;
-    }
+    // if(tipo==1){
+    //     num_bots=3;
+    // }
     std::vector<std::shared_ptr<rclcpp::Node>> nodes_cms;
     //std::vector<std::shared_ptr<rclcpp::Node>> nodes_cp;
     // Crear nodos y agregarlos a la lista

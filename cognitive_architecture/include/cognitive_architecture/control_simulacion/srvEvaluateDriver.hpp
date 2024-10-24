@@ -7,21 +7,24 @@
 #include <thread>
 //#include "gazebo_msgs/srv/spawn_entity.hpp"
 #include "rclcpp_components/node_factory.hpp"
+//#include "arlo_interfaces/msg/estado_arlo.hpp"
 
-srvEvaluateDriver::srvEvaluateDriver() : Node("servidor_simulacion")   //hay que agregar el id del robot que le corresponda
+srvEvaluateDriver::srvEvaluateDriver(int task) : Node("servidor_simulacion")   //hay que agregar el id del robot que le corresponda
 {
     rclcpp::QoS qos_profile(10);
     // Cambiar la política de confiabilidad a 'Best Effort'
     qos_profile.reliability(rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
 
     service_ = this->create_service<arlo_interfaces::srv::EvaluateDriver>("evaluate_driver", std::bind(&srvEvaluateDriver::evaluateDriver,
-                                                                                                       this, std::placeholders::_1, std::placeholders::_2));
+                                                                                      this, std::placeholders::_1, std::placeholders::_2));
 
     nodoClock = std::make_shared<rclcpp::Node>("suscriptor_clock");
-    clockSus = nodoClock->create_subscription<rosgraph_msgs::msg::Clock>("/clock", qos_profile, std::bind(&srvEvaluateDriver::checkSimulationTime, this, std::placeholders::_1));
+    clockSus = nodoClock->create_subscription<rosgraph_msgs::msg::Clock>("/clock", qos_profile, 
+                                                                                std::bind(&srvEvaluateDriver::checkSimulationTime, this, std::placeholders::_1));
 
     nodoOdom = std::make_shared<rclcpp::Node>("suscriptor_Odom");
-    OdomSus = nodoOdom->create_subscription<nav_msgs::msg::Odometry>("robot10/odom", qos_profile, std::bind(&srvEvaluateDriver::checkModelPosition, this, std::placeholders::_1));
+    OdomSus = nodoOdom->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot10/temporal_lobe_", 
+                                                                                qos_profile, std::bind(&srvEvaluateDriver::checkModelPosition, this, std::placeholders::_1));
 
     executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
 
@@ -30,10 +33,14 @@ srvEvaluateDriver::srvEvaluateDriver() : Node("servidor_simulacion")   //hay que
 
     RCLCPP_INFO(this->get_logger(), "Servidor listo para recibir solicitudes.");
 
+    clientg = rclcpp::Node::make_shared("cliente_reset");
+    reset_simulation_client_ = clientg->create_client<std_srvs::srv::Empty>("/reset_simulation");
+
     prev_x = 0;
     prev_y = 0;
     stuck = false;
     stuckCounter = 0;
+    Task=task;
 }
 
 srvEvaluateDriver::~srvEvaluateDriver()
@@ -43,22 +50,23 @@ srvEvaluateDriver::~srvEvaluateDriver()
 bool srvEvaluateDriver::evaluateDriver(const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
                                        const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Response> response)
 {
+    auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
+    auto responseg = reset_simulation_client_->async_send_request(requestg);
 
     std::string pesos = request->weightsfile;
 
-    std::cerr << pesos << std::endl;
-
     auto mensaje = std_msgs::msg::String();
     mensaje.data = pesos;
-
     publisher_pesos_eval->publish(mensaje);
-
+    sleep(2);
+    
     startSimulation(request->maxtime);
-
+    
     response->time = arloState.finishTime;
     response->dist2go = arloState.distanceToGo;
     response->damage = arloState.robotDamage;
     response->energy = arloState.distanceTravelled;
+    response->dist2mates = arloState.dist_to_mates;
 
     // for (auto& thread : threads) {
     //     thread.join();
@@ -71,26 +79,21 @@ SimulationState srvEvaluateDriver::startSimulation(int maxtime)
 {
     double fx=0;
     maxSimTime = maxtime;
+
     puts("Starting the simulation of a new driver...");
     puts("---------------------------");
-    //std::cerr << maxtime << std::endl;
-    //std::cerr << maxSimTime << std::endl;
-    // std_srvs::Empty gazeboParams;
+    //sleep(1);
 
+    // auto clientg = rclcpp::Node::make_shared("cliente_reset");
+    // auto reset_simulation_client_ = clientg->create_client<std_srvs::srv::Empty>("/reset_simulation");
 
-    auto clientg = rclcpp::Node::make_shared("cliente_reset");
-    auto reset_simulation_client_ = clientg->create_client<std_srvs::srv::Empty>("/reset_simulation");
-
-    auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
-    auto responseg = reset_simulation_client_->async_send_request(requestg);
-    sleep(1);
-
+    // auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
+    // auto responseg = reset_simulation_client_->async_send_request(requestg);
 
     arloState.resetState();
     stuckCounter = 0;
-    int i = 0;
+
     while (rclcpp::ok() && !arloState.hasTimeRunOut && !arloState.finishLineCrossed)
-    //while (rclcpp::ok() && i<20 && !arloState.finishLineCrossed)
     {
         executor->spin_node_once(nodoClock);
         executor->spin_node_once(nodoOdom);
@@ -98,9 +101,6 @@ SimulationState srvEvaluateDriver::startSimulation(int maxtime)
         //sleep(1);
     }
 
-    //if(i>=30){
-    //    arloState.hasTimeRunOut=true;
-    //}
     std::cout << "hasTimeRunOut= " << arloState.hasTimeRunOut << "\n";
     std::cout << "finishLineCrossed= " << arloState.finishLineCrossed << "\n";
 
@@ -115,21 +115,29 @@ SimulationState srvEvaluateDriver::startSimulation(int maxtime)
             cout << " \t Counter = " << stuckCounter << endl;
         }
 
-        fx = 25 + arloState.distanceToGo;
+        fx = 25 + arloState.distanceToGo + arloState.dist_to_mates;
     }
     else
     { // The robot reached the goal.
         arloState.finishTime = arloState.currentTime;
+        
+        if(arloState.finishTime < 2){
+            std::cerr << "este tiempo está mal. va de nuevo" << std::endl;
+            startSimulation(maxSimTime);
+        
+        }
+
         arloState.distanceToGo = 0.0;
         arloState.robotEnergy = 100;
         cout << "finishTime= " << arloState.finishTime << "\n";
-        fx = arloState.finishTime;
+        fx = arloState.finishTime + arloState.dist_to_mates;
     }
 
     cout << "x = " << arloState.position[0] << ", y = " << arloState.position[1] << endl;
-    cout << "d2Go= " << arloState.distanceToGo << endl;
-    cout << "gas= " << arloState.distanceTravelled << endl;
-    cout << "fx= "<< fx <<endl;
+    cout << "d2Go = " << arloState.distanceToGo << endl;
+    cout << "gas = " << arloState.distanceTravelled << endl;
+    cout <<"dist_to_mates = " << arloState.dist_to_mates << endl;
+    cout << "fx = "<< fx <<endl;
 
     //response.time = arloState.finishTime;
     //response.dist2go = arloState.distanceToGo;
@@ -158,7 +166,18 @@ double srvEvaluateDriver::distance(double x1, double y1, double x2, double y2)
     return sqrt(sum);
 }
 
-void srvEvaluateDriver::checkModelPosition(const nav_msgs::msg::Odometry &msg)
+void srvEvaluateDriver::dist_to_mates(double x)
+{
+    if (arloState.dist_to_mates == 1000){
+        arloState.dist_to_mates = x;
+        return;
+    }
+    
+    arloState.dist_to_mates += x;
+    arloState.dist_to_mates/=2;
+}
+
+void srvEvaluateDriver::checkModelPosition(const arlo_interfaces::msg::EstadoArlo &msg)
 {
     // ROS_INFO("Seq: [%d]", msg->header.seq);
     // ROS_INFO("Position-> x: [%f]", msg->pose.pose.position.x);
@@ -173,13 +192,13 @@ void srvEvaluateDriver::checkModelPosition(const nav_msgs::msg::Odometry &msg)
     
 
     double distanceBefore = arloState.distanceTravelled;
-    arloState.distanceTravelled += distance(prev_x, prev_y, msg.pose.pose.position.x, msg.pose.pose.position.y);
+    arloState.distanceTravelled += distance(prev_x, prev_y, msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y);
 
     if (abs(distanceBefore - arloState.distanceTravelled) < 0.01)
     {
         stuckCounter++;
         // cout << "Stuck counter: " << stuckCounter << "\n";
-        if (stuckCounter > 80)
+        if (stuckCounter > 20)
         {
             arloState.stuck = true;
             arloState.hasTimeRunOut = true;
@@ -188,13 +207,23 @@ void srvEvaluateDriver::checkModelPosition(const nav_msgs::msg::Odometry &msg)
     else
         stuckCounter = 0;
 
-    prev_x = msg.pose.pose.position.x;
-    prev_y = msg.pose.pose.position.y;
+    prev_x = msg.odom.pose.pose.position.x;
+    prev_y = msg.odom.pose.pose.position.y;
 
-    arloState.currentPosition = msg.pose.pose.position.x;
-    arloState.position[0] = msg.pose.pose.position.x;
-    arloState.position[1] = msg.pose.pose.position.y;
-    arloState.distanceToGo = dist2Go(msg.pose.pose.position.x, msg.pose.pose.position.y);
+    arloState.currentPosition = msg.odom.pose.pose.position.x;
+    arloState.position[0] = msg.odom.pose.pose.position.x;
+    arloState.position[1] = msg.odom.pose.pose.position.y;
+    //double d2go = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y);
+    arloState.distanceToGo = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y); 
+    
+    if(Task == 1){
+        arloState.dist_to_mates = 0.0;
+    }
+    else{
+        dist_to_mates(msg.dist_to_mates);
+    }
+
+    
     if (arloState.distanceToGo <= 1.0) 
         arloState.finishLineCrossed = true;
 }

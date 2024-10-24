@@ -24,11 +24,11 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:] 
     
-    if args[0]=="1":
-        num_bots=3
+    # if args[0]=="1":
+    #     num_bots=3
 
-    else:
-        num_bots=int(args[1])
+    
+    num_bots=int(args[1])
 
     task = int(args[2])
 

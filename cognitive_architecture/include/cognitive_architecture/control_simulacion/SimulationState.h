@@ -18,6 +18,7 @@ public:
    bool stuck;
    bool hasTimeRunOut;
 	bool finishLineCrossed;
+   double dist_to_mates;
 
    void resetState();
 };

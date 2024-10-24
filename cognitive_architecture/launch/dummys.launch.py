@@ -27,7 +27,7 @@ def create_bots(context, *args, **kwargs):
     
     spawn_nodes = []
 
-    x=0
+    x=-3
     y=-14
     
     for robot in bots.values():
