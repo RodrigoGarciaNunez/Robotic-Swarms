@@ -455,7 +455,7 @@
       <sensor name='head_hokuyo_sensor' type='ray'>
         <pose frame=''>0 0 0.0125 3.14159 0 0</pose>
         <visualize>1</visualize>
-        <update_rate>5</update_rate>
+        <update_rate>10</update_rate>
         <ray>
           <noise>
             <type>gaussian</type>
@@ -519,7 +519,7 @@
       <sensor name='head_hokuyo_sensor' type='ray'>
         <pose frame=''>0 0 0.0125 3.14159 0 0</pose>
         <visualize>1</visualize>
-        <update_rate>5</update_rate>
+        <update_rate>10</update_rate>
         <ray>
           <noise>
             <type>gaussian</type>
@@ -583,7 +583,7 @@
       <sensor name='head_hokuyo_sensor' type='ray'>
         <pose frame=''>0 0 0.0125 3.14159 0 0</pose>
         <visualize>1</visualize>
-        <update_rate>5</update_rate>
+        <update_rate>10</update_rate>
         <ray>
           <noise>
             <type>gaussian</type>
@@ -647,7 +647,7 @@
       <sensor name='head_hokuyo_sensor' type='ray'>
         <pose frame=''>0 0 0.0125 3.14159 0 0</pose>
         <visualize>1</visualize>
-        <update_rate>5</update_rate>
+        <update_rate>10</update_rate>
         <ray>
           <noise>
             <type>gaussian</type>

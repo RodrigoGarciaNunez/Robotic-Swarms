@@ -40,7 +40,7 @@ public:
         if(task==2){  //si la task a evaluar ocupa actualizar el numero de mates
             publisherMates = this->create_publisher<std_msgs::msg::Int64>("robot" + std::to_string(i) + "0/redefineMates", 10);
             auto actualizaMates = std_msgs::msg::Int64();
-            actualizaMates.data = 2;  
+            actualizaMates.data = 1;  
             publisherMates->publish(actualizaMates);
         }
         

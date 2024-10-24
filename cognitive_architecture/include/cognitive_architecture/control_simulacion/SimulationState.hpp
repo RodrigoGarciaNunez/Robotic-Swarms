@@ -20,4 +20,5 @@ void SimulationState::resetState() {
    stuck = false;
    hasTimeRunOut = false;
 	finishLineCrossed = false;
+   dist_to_mates = 1000.0;
 }

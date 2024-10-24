@@ -25,7 +25,8 @@ class temporal_lobe(Node):
 
         if self.tipo == "1":
             self.numMates = numMates+1   #aqui, en caso los nodos sean dummy, entonces se agrega un mate más, refiriendonos al bot soñando
-
+            self.i= self.i+1
+            
         self.flag_recibido = [False] * (4+self.numMates)
 
         self.mensajes_recibidos_list= [0] * (4+self.numMates) #son 4 sensores + n Compañeros
@@ -53,7 +54,6 @@ class temporal_lobe(Node):
         
         split = list(odoms.name)
         
-        print(split[0]+" "+str(self.i))
         self.mensajes_recibidos_list[int(split[0])+3] = odoms.odom
         self.flag_recibido[int(split[0])+3]=True
 
@@ -69,7 +69,6 @@ class temporal_lobe(Node):
 
 
     def procesa1(self, rango:LaserScan):  #link_sensor_center
-        print("procesa1 "+str(self.i))
         self.mensajes_recibidos_list[0]=LaserScan()
         self.mensajes_recibidos_list[0]= rango
         self.flag_recibido[0]=True
@@ -78,7 +77,6 @@ class temporal_lobe(Node):
 
 
     def procesa2(self, rango:LaserScan):  #link_sensor_center
-        print("procesa2 "+str(self.i))
         self.mensajes_recibidos_list[1]=LaserScan()
         self.mensajes_recibidos_list[1]=rango
         self.flag_recibido[1]=True
@@ -86,7 +84,6 @@ class temporal_lobe(Node):
             self.procesaAll()
 
     def procesa3(self, rango:LaserScan):  #link_sensor_center
-        print("procesa3 "+str(self.i))
         self.mensajes_recibidos_list[2]=LaserScan()
         self.mensajes_recibidos_list[2]=rango
         self.flag_recibido[2]=True
@@ -95,7 +92,6 @@ class temporal_lobe(Node):
                 
 
     def procesa4(self, rango:LaserScan):  #link_sensor_center
-        print("procesa4 "+str(self.i))
         self.mensajes_recibidos_list[3]=LaserScan()
         self.mensajes_recibidos_list[3]=rango
         self.flag_recibido[3]=True
@@ -107,12 +103,10 @@ class temporal_lobe(Node):
 
         self.flag_recibido = [False] * (4+self.numMates)
         self.mensajes_recibidos_list= [0] * (4+self.numMates)
+
     
     def procesaAll(self):
         estado = EstadoArlo()
-        #rclpy.spin_once(self.nodoOdom)
-        #self.executorspin_once()
-        # aqui hay que poner un nodo en spin_once para obtener la posicion de arlo
         
         estado.sensor1 = self.mensajes_recibidos_list[0]
         estado.sensor2 = self.mensajes_recibidos_list[1]
@@ -143,7 +137,6 @@ class temporal_lobe(Node):
 
         # for mensaje in self.mensajes_recibidos_list:
         #     print(mensaje)
-        print("voy a publicar "+str(self.i))
         self.publisher.publish(estado)
         self.flag_recibido = [False] *(4+self.numMates)
         

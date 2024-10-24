@@ -91,24 +91,16 @@ void GeneticoSimple::optimizar()
     elitismo(oldpop, gen);
     stats.statistics(oldpop, popSize);
 
-    // std::cerr << "incialice la poblacion" << std::endl;
     //  Bucle principal de optimización
     for (gen = 2; gen <= Gmax; gen++)
     {
         seleccionPadres(oldpop);
-        // std::cerr << "seleccione padres" << std::endl;
         cruza(oldpop, newpop);
-        // std::cerr << "hice cruza" << std::endl;
         mutacion(newpop);
-        // std::cerr << "hice mutacion" << std::endl;
         evaluarPoblacion(newpop);
-        // std::cerr << "hice evalue la poblacion" << std::endl;
         elitismo(newpop, gen);
-        // std::cerr << "hice elitismo" << std::endl;
         stats.statistics(newpop, popSize);
-        // std::cerr << "penultimo" << std::endl;
         stats.shortReport(cout, oldpop, newpop, popSize, gen);
-        // std::cerr << "ultimo" << std::endl;
         //  Intercambio de poblaciones
         temp = oldpop;
         oldpop = newpop;
@@ -178,15 +170,12 @@ void GeneticoSimple::inicalizarPob()
 
         for (unsigned j = 1; j < popSize; j++)
         {
-            // std::cerr << j << std::endl;
             oldpop[j].copiar(&oldpop[0]);
-            // std::cerr << j << std::endl;
             newpop[j].copiar(&oldpop[0]);
-            // std::cerr << j << std::endl;
         }
 
         auxPm = Pm;
-        Pm = 0.05; /* mutación muy pequeña para dar un poco de variedad a la población */
+        Pm = 0.3; /* mutación muy pequeña para dar un poco de variedad a la población */
         mutacion(oldpop);
         Pm = auxPm;
     }
@@ -195,11 +184,8 @@ void GeneticoSimple::inicalizarPob()
     {
         for (int j = 1; j < popSize; j++)
         {
-            // std::cerr << j << std::endl;
             oldpop[j].insuflar(problema, precision);
-            // std::cerr << j << std::endl;
             newpop[j].insuflar(problema, precision);
-            // std::cerr << j << std::endl;
         }
     }
 
@@ -213,17 +199,17 @@ void GeneticoSimple::evaluarPoblacion(Individuo *pop)
 {
     if (task != 1)  //en caso de que no sea necesario agregar dummies
     {
-        std::system("ros2 launch cognitive_architecture dummys.launch.py num_bots:=2 > /dev/null");
+        std::system("ros2 launch cognitive_architecture dummys.launch.py num_bots:=1 > /dev/null");
 
         std::vector<std::string> comandos = {
             // dev/null es para que no se imprima en terminal
-            "ros2 run cognitive_architecture cpp_exe 1 2 1 > /dev/null",
-            "ros2 run cognitive_architecture Controlador_individuo.py 1 2 1 > /dev/null"};
+            "ros2 run cognitive_architecture cpp_exe 1 1 1 > /dev/null",
+            "ros2 run cognitive_architecture Controlador_individuo.py 1 1 1 > /dev/null"};
 
         std::vector<std::thread> threads;
 
         // Crear un hilo para cada comando en la lista
-        for (const auto &comando : comandos)
+        for (const auto comando : comandos)
         {
             threads.emplace_back([this, comando]()
                                  { std::system(comando.c_str()); });
@@ -233,6 +219,8 @@ void GeneticoSimple::evaluarPoblacion(Individuo *pop)
         {
             thread.detach();
         }
+        
+        //std::cerr<< "hola, sí acabó el if" << std::endl;
     }
 
     for (int i = 0; i < popSize; ++i)
@@ -243,7 +231,7 @@ void GeneticoSimple::evaluarPoblacion(Individuo *pop)
         pop[i].aptitud = 1.0 / (1 + pop[i].eval);
     }
 
-    // std::terminate();
+    //std::terminate();
 }
 
 // Método para seleccionar los padres utilizando el método de la ruleta
