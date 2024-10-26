@@ -147,7 +147,7 @@ void Individuo::x2cromosoma() {
     int entero;  // redondeo del valor d.
     int finGene, inicioGene = 0;
     //std::cerr << cromo.size() << std::endl;
-    for (int i = 0; i < x.size(); i++) {
+    for (size_t i = 0; i < x.size(); i++) {
         Range r = xRanges[i];
 
         d = (pow(2, geneSizes[i]) - 1.0) *

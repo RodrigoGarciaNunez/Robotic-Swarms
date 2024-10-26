@@ -13,7 +13,7 @@
 #include "cognitive_architecture/Red_Neuronal/NeuroControllerDriver.hpp"
 #include <cstdlib> // Necesario para system()
 #include <cstdio>
-#include "arlo_interfaces/msg/pesos_struct.hpp"
+//#include "arlo_interfaces/msg/pesos_struct.hpp"
 #include "arlo_interfaces/msg/estado_arlo.hpp"
 #include <cstring>
 #include <sys/stat.h>
@@ -21,7 +21,6 @@
 
 using std::placeholders::_1;
 // using namespace std;
-//  #include "cognitive_architecture/SimulationController.h"
 
 // este nodo contiene la red neuronal que se encarga de decidir los movimientos del robot
 // cmSec es corteza motora Secundaria
@@ -36,7 +35,7 @@ class cmSec : public rclcpp::Node
 
 public:
    cmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + std::to_string(i) + tipo), identificador(i), task(task),
-                                       redNeuronal(task_map[task][0], task_map[task][1], rangos_salidas), tipo(tipo-48) // -48 por el ascci
+      redNeuronal(task_map[task][0], task_map[task][1], rangos_salidas), tipo(tipo-48) // -48 por el ascci
    {
 
       //std::cerr << tipo <<std::endl;
@@ -54,14 +53,9 @@ public:
       subscription_ = this->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot" + std::to_string(i) + tipo + "/temporal_lobe_", 10, std::bind(&cmSec::callback, this, std::placeholders::_1));
 
       char archivo[50];
-      if (std::string(1, tipo) == "1")
-      {
-         std::sprintf(archivo, "./archivo_pesos_predeterminado_%d.txt", task);
-      }
-      else
-      {
-         std::sprintf(archivo, "./archivo_pesos_%d_%d.txt", identificador, task);
-      }
+      
+      if (std::string(1, tipo) == "1") std::sprintf(archivo, "./archivo_pesos_predeterminado_%d.txt", task);
+      else std::sprintf(archivo, "./archivo_pesos_%d_%d.txt", identificador, task);
 
       if (!fileExists(archivo))
       {
@@ -70,11 +64,6 @@ public:
       }
 
       redNeuronal.setParameters(archivo);
-
-      // auto pesos = arlo_interfaces::msg::PesosStruct();
-      // pesos.pesos = {1, 2, 3, 4, 5, 6, 5};
-      // redNeuronal.vectorEnvia(pesos.pesos);
-      // publisher_evo_->publish(pesos);
    }
 
 private:
@@ -84,12 +73,12 @@ private:
       {
          std_msgs::msg::Float64MultiArray vector_reaction;
 
-         for (int i = 0; i < msg.sensor1.ranges.size(); i++)
+         for (size_t i = 0; i < msg.sensor1.ranges.size(); i++)
          {
-            entradas.push_back(normalizar(msg.sensor1.ranges[i], msg.sensor1.range_min, msg.sensor1.range_max));
-            entradas.push_back(normalizar(msg.sensor2.ranges[i], msg.sensor2.range_min, msg.sensor2.range_max));
-            entradas.push_back(normalizar(msg.sensor3.ranges[i], msg.sensor2.range_min, msg.sensor2.range_max));
-            entradas.push_back(normalizar(msg.sensor4.ranges[i], msg.sensor2.range_min, msg.sensor2.range_max));
+            entradas.push_back(msg.sensor1.ranges[i]);
+            entradas.push_back(msg.sensor2.ranges[i]);
+            entradas.push_back(msg.sensor3.ranges[i]);
+            entradas.push_back(msg.sensor4.ranges[i]);
          }
 
 
@@ -108,17 +97,16 @@ private:
 
          redNeuronal.driveArlo(entradas, reaction);
 
-         // if (((dist_to_go_x <= 1) && (dist_to_go_x >= -1)) && ((dist_to_go_y <= 1) && (dist_to_go_y >= -1)) && (tipo == 0))
-         // {
-         //    reaction.clear();
-         //    reaction.push_back(0);
-         //    reaction.push_back(0);
-         //    //flag_success = true;
-         //    //std::cerr << "si llegué" << std::endl;
-         // }
+         if (((dist_to_go_x <= 1) && (dist_to_go_x >= -1)) && ((dist_to_go_y <= 1) && (dist_to_go_y >= -1)) && (tipo == 0))
+         {
+            reaction.clear();
+            reaction.push_back(0);
+            reaction.push_back(0);
+            //flag_success = true;
+            //std::cerr << "si llegué" << std::endl;
+         }
 
          vector_reaction.data = reaction;
-         // vector_reaction.data[1] = reaction[1];
 
          publisher_NN->publish(vector_reaction);
 
@@ -148,11 +136,10 @@ private:
    void genera_pesos(const char *archivo_name)
    {
 
-      // std::ofstream archivo("archivo_pesos_" + std::to_string(identificador) +"_"+std::to_string(task)+".txt"); // por el momento, al crearse este nodo, se crea un archivo con pesos aleatorios para cada robot
       std::ofstream archivo(archivo_name);
       std::random_device rd;
       std::mt19937 gen(rd());                               // Motor mersenne_twister_engine
-      std::uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 100
+      std::uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 500
 
       archivo << std::to_string(task_map[task][0]) + " " + std::to_string(task_map[task][1]) + " 0\n";
       for (int i = 0; i < task_map[task][0]; i++)
@@ -161,18 +148,14 @@ private:
       }
    }
 
-   float normalizar(float valor, float min, float max)
-   {  
-      float normalized;
-      if (valor > max) {
-         normalized = max;
-      } else if (valor < min) {
-         normalized = 0;
-      } else {
-         normalized = valor;
-      }
-      return normalized;
-   }
+   // float normalizar(float valor, float min, float max)
+   // {  
+   //    float normalized;
+   //    if (valor < min) normalized = 0;
+   //    else normalized = valor;
+      
+   //    return normalized;
+   // }
 
    rclcpp::Subscription<arlo_interfaces::msg::EstadoArlo>::SharedPtr subscription_; // aqui se declara al suscriptor
    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr publisher_NN;
