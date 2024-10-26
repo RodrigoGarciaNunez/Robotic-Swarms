@@ -43,6 +43,31 @@ GeneticoSimple::GeneticoSimple(ProblemaOptim *p, ParamsGA &params, int id, int t
         }
     }
     std::cerr << "hice el constructor" << std::endl;
+
+    // dev/null es para que no se imprima en terminal
+    comandos ={
+            "ros2 run cognitive_architecture cpp_exe 1 1 1 > /dev/null",
+            "ros2 run cognitive_architecture Controlador_individuo.py 1 1 1 > /dev/null"};
+
+
+    if (task != 1)  //en caso de que no sea necesario agregar dummies
+    {
+        std::system("ros2 launch cognitive_architecture dummys.launch.py num_bots:=1 > /dev/null");
+
+
+        // Crear un hilo para los comandos
+        for (auto comando : comandos)
+        {
+            threads.emplace_back([this, comando]()
+                                 { std::system(comando.c_str()); });
+        }
+
+        for (auto &thread : threads)
+        {
+            thread.detach();
+        }
+        
+    }
     // Evaluación de la población inicial y aplicación del elitismo
     // evaluarPoblacion(oldpop);
     // elitismo(oldpop, gen);
@@ -130,7 +155,7 @@ void GeneticoSimple::inicalizarPob()
     {
         std::cerr << "hola, ya existe un controlador previamente entrenado llamado" << inputDir << std::endl;
 
-        for (unsigned j = 0; j < popSize; j++)
+        for (int j = 0; j < popSize; j++)
         {
             oldpop[j].iniciaInfo(problema, precision);
             newpop[j].iniciaInfo(problema, precision);
@@ -168,7 +193,7 @@ void GeneticoSimple::inicalizarPob()
         // std::cerr << std::endl;
         // std::cerr << "pase de x2cromo" << std::endl;
 
-        for (unsigned j = 1; j < popSize; j++)
+        for (int j = 1; j < popSize; j++)
         {
             oldpop[j].copiar(&oldpop[0]);
             newpop[j].copiar(&oldpop[0]);
@@ -197,32 +222,6 @@ void GeneticoSimple::inicalizarPob()
 // Método para evaluar la población
 void GeneticoSimple::evaluarPoblacion(Individuo *pop)
 {
-    if (task != 1)  //en caso de que no sea necesario agregar dummies
-    {
-        std::system("ros2 launch cognitive_architecture dummys.launch.py num_bots:=1 > /dev/null");
-
-        std::vector<std::string> comandos = {
-            // dev/null es para que no se imprima en terminal
-            "ros2 run cognitive_architecture cpp_exe 1 1 1 > /dev/null",
-            "ros2 run cognitive_architecture Controlador_individuo.py 1 1 1 > /dev/null"};
-
-        std::vector<std::thread> threads;
-
-        // Crear un hilo para cada comando en la lista
-        for (const auto comando : comandos)
-        {
-            threads.emplace_back([this, comando]()
-                                 { std::system(comando.c_str()); });
-        }
-
-        for (auto &thread : threads)
-        {
-            thread.detach();
-        }
-        
-        //std::cerr<< "hola, sí acabó el if" << std::endl;
-    }
-
     for (int i = 0; i < popSize; ++i)
     {
         problema->evaluateFun(pop[i].x, pop[i].eval, pop[i].cons);
@@ -230,8 +229,6 @@ void GeneticoSimple::evaluarPoblacion(Individuo *pop)
 
         pop[i].aptitud = 1.0 / (1 + pop[i].eval);
     }
-
-    //std::terminate();
 }
 
 // Método para seleccionar los padres utilizando el método de la ruleta
@@ -321,11 +318,8 @@ int GeneticoSimple::cruza1Punto(Cromosoma &padre1, Cromosoma &padre2, Cromosoma 
     }
     else
     {
-        // std::cerr << "entre al else" << std::endl;
         hijo1 = padre1;
-        // std::cerr << "voy bien 1" << std::endl;
         hijo2 = padre2;
-        // std::cerr << "voy bien 2" << std::endl;
         pcruza = 0;
     }
     // delete unif;

@@ -70,7 +70,7 @@ void NeuroControllerDriver::driveArlo(const vector<double> &inputs, vector<doubl
    /*** 0. Get the NN's input values from the current robot's state. ***/
    layerOutputs[INPUT_LAYER] = inputs;
 
-   for (int i = 0; i < layerOutputs[INPUT_LAYER].size(); ++i)
+   for (size_t i = 0; i < layerOutputs[INPUT_LAYER].size(); ++i)
    {
       if (isinf(layerOutputs[INPUT_LAYER][i]))
          layerOutputs[INPUT_LAYER][i] = 4;
@@ -137,7 +137,7 @@ int NeuroControllerDriver::numWeights()
 
 void NeuroControllerDriver::checkOutputs(vector<double> &y)
 {
-   for (int i = 0; i < y.size(); ++i)
+   for (size_t i = 0; i < y.size(); ++i)
    {
       if (y[i] < oBounds[i].first || y[i] > oBounds[i].second)
       {
@@ -231,7 +231,7 @@ void NeuroControllerDriver::printWeights()
 
 void NeuroControllerDriver::adjustOutputs(vector<double> &y)
 {
-   for (int i = 0; i < y.size(); ++i)
+   for (size_t i = 0; i < y.size(); ++i)
    {
       y[i] = sigmoid(y[i], 0.0001);
       y[i] = oBounds[i].first + (oBounds[i].second - oBounds[i].first) * y[i];

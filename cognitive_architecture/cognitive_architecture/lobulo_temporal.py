@@ -22,15 +22,17 @@ class temporal_lobe(Node):
         self.tipo = tipo
         self.numMates = numMates
         self.task= task
+        self.estado = EstadoArlo()
+        self.estadoO = MatesOdom()
+        self.dist_to_mates = 0.0
 
         if self.tipo == "1":
             self.numMates = numMates+1   #aqui, en caso los nodos sean dummy, entonces se agrega un mate más, refiriendonos al bot soñando
             self.i= self.i+1
             
         self.flag_recibido = [False] * (4+self.numMates)
-
         self.mensajes_recibidos_list= [0] * (4+self.numMates) #son 4 sensores + n Compañeros
-        #self.posiciones_mates
+
         self.diccionario_sensores = {'link_sensor_center': 1, 'link_sensor_back': 2, 'link_sensor_right': 3, 'link_sensor_left': 4}
 
         self.publisher =  self.create_publisher(EstadoArlo,"robot"+str(i)+tipo+"/temporal_lobe_",10)
@@ -43,11 +45,6 @@ class temporal_lobe(Node):
 
         self.susMates = self.create_subscription(MatesOdom,"MatesOdom", self.procesaMatesOdom, 10)
         self.pubMates =  self.create_publisher(MatesOdom,"MatesOdom",10)
-        #self.nodoOdom = rclpy.create_node("oyente_odom_tp_"+str(i)+tipo)
-        #suscriptorOdom = self.nodoOdom.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.checaOdom, 10)
-        
-        # self.executor = SingleThreadedExecutor()
-        # self.executor.(self.nodoOdom)
 
 
     def procesaMatesOdom(self, odoms:MatesOdom):
@@ -62,10 +59,10 @@ class temporal_lobe(Node):
     
 
     def checaOdom(self, odom:Odometry):
-        estado = MatesOdom()
-        estado.odom = odom
-        estado.name = str(self.i)+str(self.tipo)
-        self.pubMates.publish(estado)
+        #estado = MatesOdom()
+        self.estadoO.odom = odom
+        self.estadoO.name = str(self.i)+str(self.tipo)
+        self.pubMates.publish(self.estadoO)
 
 
     def procesa1(self, rango:LaserScan):  #link_sensor_center
@@ -106,37 +103,25 @@ class temporal_lobe(Node):
 
     
     def procesaAll(self):
-        estado = EstadoArlo()
         
-        estado.sensor1 = self.mensajes_recibidos_list[0]
-        estado.sensor2 = self.mensajes_recibidos_list[1]
-        estado.sensor3 = self.mensajes_recibidos_list[2]
-        estado.sensor4 = self.mensajes_recibidos_list[3]
-        estado.odom= self.mensajes_recibidos_list[(int(self.i))+3]   # con self.i, obtenemos la posicion de la odometría que le corresponde a bot self
-
-        dist_to_mates = 0.0
+        self.estado.sensor1 = self.mensajes_recibidos_list[0]
+        self.estado.sensor2 = self.mensajes_recibidos_list[1]
+        self.estado.sensor3 = self.mensajes_recibidos_list[2]
+        self.estado.sensor4 = self.mensajes_recibidos_list[3]
+        self.estado.odom= self.mensajes_recibidos_list[(int(self.i))+3]   # con self.i, obtenemos la posicion de la odometría que le corresponde a bot self
 
         if (self.task == 2 and self.numMates>1):
 
             for i, msg in enumerate(self.mensajes_recibidos_list[4:]):
                 if i != self.i-1:
                     #print(f'soy'+str(self.i)+' y voy en '+str(i))
-                    dist_to_mates += sqrt(pow((estado.odom.pose.pose.position.x)-(msg.pose.pose.position.x),2)+
-                                      pow((estado.odom.pose.pose.position.y)-(msg.pose.pose.position.y), 2))
+                    self.dist_to_mates += sqrt(pow((self.estado.odom.pose.pose.position.x)-(msg.pose.pose.position.x),2)+
+                                      pow((self.estado.odom.pose.pose.position.y)-(msg.pose.pose.position.y), 2))
         
-            dist_to_mates /= (self.numMates - 1)
+            self.dist_to_mates /= (self.numMates - 1)
 
-        estado.dist_to_mates = dist_to_mates
-        #print(f'soy'+str(self.i)+' y mi distancia a mis compañeros '+str(dist_to_mates))
-        # print("Estado a publicar:")
-        # print("Sensor 1:", estado.sensor1)
-        # print("Sensor 2:", estado.sensor2)
-        # print("Sensor 3:", estado.sensor3)
-        # print("Sensor 4:", estado.sensor4)
-        #print("Odometría:", estado.odom)
+        self.estado.dist_to_mates = self.dist_to_mates
 
-        # for mensaje in self.mensajes_recibidos_list:
-        #     print(mensaje)
-        self.publisher.publish(estado)
+        self.publisher.publish(self.estado)
         self.flag_recibido = [False] *(4+self.numMates)
         

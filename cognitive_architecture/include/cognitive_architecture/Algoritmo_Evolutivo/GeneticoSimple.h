@@ -104,6 +104,10 @@ private:
    mt19937 rng;                // Mersenne-Twister random number engine
    
    double tiempoMaximo;        // PEOR tiempo en terminar la carrera en TORCS.
+
+   vector<string> comandos;
+   vector<thread> threads;
+
 };
 
 
