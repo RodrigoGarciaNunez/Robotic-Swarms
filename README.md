@@ -1,5 +1,8 @@
 # ProyectoTerminal_AlgoritmosNeuronasEspejoParaAprendizajeDeEnjambresRoboticos
 
+![Demostración](output.gif)
+
+
 ## Acerca de la implementacion
 
 Este proyecto utiliza ROS2 para implementar los elementos de la arquitectura cognitiva, así como sus comunicaciones.
