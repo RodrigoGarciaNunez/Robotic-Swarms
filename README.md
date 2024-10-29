@@ -5,7 +5,7 @@
 
 ## Acerca de la implementacion
 
-Hola. Este proyecto utiliza ROS2 para implementar los elementos de la arquitectura cognitiva, así como sus comunicaciones.
+Este proyecto utiliza ROS2 para implementar los elementos de la arquitectura cognitiva, así como sus comunicaciones.
 
 Para este poryecto, se han creado 2 paquetes de ros2: arlo_interfaces y cognitive_architecture.
 
