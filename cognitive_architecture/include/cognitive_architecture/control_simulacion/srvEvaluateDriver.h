@@ -11,6 +11,8 @@
 #include "std_msgs/msg/string.hpp"
 #include "arlo_interfaces/msg/estado_arlo.hpp"
 
+using namespace std;
+
 class srvEvaluateDriver: public rclcpp::Node {
 public:
 
@@ -35,6 +37,7 @@ private:
     double maxSimTime;  /* Maximum time allowed for the robot to get the goal */
     double goalDistance;
     double prev_x, prev_y;
+    long double num_check; //numero de chequeos de odom;
     long int stuckCounter;
     bool stuck;
     int Task;

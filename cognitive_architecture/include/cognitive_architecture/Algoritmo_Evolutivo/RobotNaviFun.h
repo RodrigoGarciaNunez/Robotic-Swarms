@@ -17,7 +17,7 @@ static   std::map<int, std::vector<int>> task_map_ = {
 
 class RobotNaviFun : public ProblemaOptim {
 public:
-   RobotNaviFun(int task, int maxSimTime = 50, double touchThreshold = 1);
+   RobotNaviFun(int id, int task, int maxSimTime = 50, double touchThreshold = 1);
    virtual ~RobotNaviFun();
 
    void evaluateFun(vector<double> const &x, double &fun, vector<double> &cons) const;
@@ -26,7 +26,8 @@ private:
    int numInputsNN;  // Number of inputs of the neural network.
    int numOutputsNN; // Number of outputs of the neural network.
    int numHidden;    // Number of hidden nodes of the neural network.
-   int Task;         
+   int Task;
+   int Id;         
    int maxSimTime;
    double touchThreshold;
    string popFilePattern;  // Archivo de pesos para comunicación con el simulador.

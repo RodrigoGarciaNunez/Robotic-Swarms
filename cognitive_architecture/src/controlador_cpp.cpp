@@ -30,7 +30,7 @@ void remSignal(int signal){
     std::vector<std::shared_ptr<rclcpp::Node>> nodes_cp;
     
     for(int i=1; i<2; i++){
-        RobotNaviFun* p = new RobotNaviFun(task);
+        RobotNaviFun* p = new RobotNaviFun(i,task);
         ParamsGA params;
         nodes_cp.push_back(std::make_shared<cp>(i, p, params, &bandera, task));
     }

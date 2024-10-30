@@ -109,19 +109,19 @@ class temporal_lobe(Node):
         self.estado.sensor3 = self.mensajes_recibidos_list[2]
         self.estado.sensor4 = self.mensajes_recibidos_list[3]
         self.estado.odom= self.mensajes_recibidos_list[(int(self.i))+3]   # con self.i, obtenemos la posicion de la odometría que le corresponde a bot self
-
+        
+        self.dist_to_mates = 0.0
         if (self.task == 2 and self.numMates>1):
 
             for i, msg in enumerate(self.mensajes_recibidos_list[4:]):
                 if i != self.i-1:
-                    #print(f'soy'+str(self.i)+' y voy en '+str(i))
                     self.dist_to_mates += sqrt(pow((self.estado.odom.pose.pose.position.x)-(msg.pose.pose.position.x),2)+
                                       pow((self.estado.odom.pose.pose.position.y)-(msg.pose.pose.position.y), 2))
         
             self.dist_to_mates /= (self.numMates - 1)
 
+    
         self.estado.dist_to_mates = self.dist_to_mates
-
         self.publisher.publish(self.estado)
         self.flag_recibido = [False] *(4+self.numMates)
         
