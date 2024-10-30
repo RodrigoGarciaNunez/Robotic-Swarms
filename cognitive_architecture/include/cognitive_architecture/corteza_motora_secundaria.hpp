@@ -20,12 +20,12 @@
 #include <map>
 
 using std::placeholders::_1;
-// using namespace std;
+using namespace std;
 
 // este nodo contiene la red neuronal que se encarga de decidir los movimientos del robot
 // cmSec es corteza motora Secundaria
 
-static std::map<int, std::vector<int>> task_map = {
+static map<int, vector<int>> task_map = {
     {1, {98, 2}}, // 1.- Desplazamiento individula
     {2, {99, 2}}  // 2.- Desplazamiento en grupo
 };
@@ -34,7 +34,7 @@ class cmSec : public rclcpp::Node
 {
 
 public:
-   cmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + std::to_string(i) + tipo), identificador(i), task(task),
+   cmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + to_string(i) + tipo), identificador(i), task(task),
       redNeuronal(task_map[task][0], task_map[task][1], rangos_salidas), tipo(tipo-48) // -48 por el ascci
    {
 
@@ -42,24 +42,24 @@ public:
 
       flag_success = false;
 
-      publisher_NN = this->create_publisher<std_msgs::msg::Float64MultiArray>("robot" + std::to_string(i) + tipo + "/corteza_motora_secundariaNN", 10);
+      publisher_NN = this->create_publisher<std_msgs::msg::Float64MultiArray>("robot" + to_string(i) + tipo + "/corteza_motora_secundariaNN", 10);
 
-      publisher_evo_ = this->create_publisher<arlo_interfaces::msg::PesosStruct>("robot" + std::to_string(i) + tipo + "/corteza_motora_secundaria_pesos", 10);
+      publisher_evo_ = this->create_publisher<arlo_interfaces::msg::PesosStruct>("robot" + to_string(i) + tipo + "/corteza_motora_secundaria_pesos", 10);
 
-      subscriber_evo = this->create_subscription<std_msgs::msg::String>("robot" + std::to_string(i) + tipo + "/corteza_premotora_evolutivo", 10, std::bind(&cmSec::callback_evo, this, std::placeholders::_1));
+      subscriber_evo = this->create_subscription<std_msgs::msg::String>("robot" + to_string(i) + tipo + "/corteza_premotora_evolutivo", 10, bind(&cmSec::callback_evo, this, placeholders::_1));
 
-      publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("robot" + std::to_string(i) + tipo + "/corteza_motora_secundaria", 10);
+      publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("robot" + to_string(i) + tipo + "/corteza_motora_secundaria", 10);
 
-      subscription_ = this->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot" + std::to_string(i) + tipo + "/temporal_lobe_", 10, std::bind(&cmSec::callback, this, std::placeholders::_1));
+      subscription_ = this->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot" + to_string(i) + tipo + "/temporal_lobe_", 10, bind(&cmSec::callback, this, placeholders::_1));
 
       char archivo[50];
       
-      if (std::string(1, tipo) == "1") std::sprintf(archivo, "./archivo_pesos_predeterminado_%d.txt", task);
-      else std::sprintf(archivo, "./archivo_pesos_%d_%d.txt", identificador, task);
+      if (string(1, tipo) == "1") sprintf(archivo, "./archivo_pesos_predeterminado_%d.txt", task);
+      else sprintf(archivo, "./archivo_pesos_%d_%d.txt", identificador, task);
 
       if (!fileExists(archivo))
       {
-         std::cerr << "no existe un archivo entrenado" << std::endl;
+         cerr << "no existe un archivo entrenado" << endl;
          genera_pesos(archivo);
       }
 
@@ -125,9 +125,10 @@ private:
       RCLCPP_INFO(this->get_logger(), "me llegaron mis nuevos pesos ->%s", msg.data.c_str());
       redNeuronal.setParameters(msg.data.c_str());
       flag_success = false;
+      sleep(2);
    }
 
-   bool fileExists(std::string path)
+   bool fileExists(string path)
    {
       struct stat info;
       return (stat(path.c_str(), &info) == 0 && !(info.st_mode & S_IFDIR)); // comprueba la existencia de un archivo, no de un directorio
@@ -136,12 +137,12 @@ private:
    void genera_pesos(const char *archivo_name)
    {
 
-      std::ofstream archivo(archivo_name);
-      std::random_device rd;
-      std::mt19937 gen(rd());                               // Motor mersenne_twister_engine
-      std::uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 500
+      ofstream archivo(archivo_name);
+      random_device rd;
+      mt19937 gen(rd());                               // Motor mersenne_twister_engine
+      uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 500
 
-      archivo << std::to_string(task_map[task][0]) + " " + std::to_string(task_map[task][1]) + " 0\n";
+      archivo << to_string(task_map[task][0]) + " " + to_string(task_map[task][1]) + " 0\n";
       for (int i = 0; i < task_map[task][0]; i++)
       {
          archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
@@ -162,11 +163,11 @@ private:
    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr publisher_;
    rclcpp::Publisher<arlo_interfaces::msg::PesosStruct>::SharedPtr publisher_evo_;
    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscriber_evo;
-   std::vector<arlo_interfaces::msg::EstadoArlo> mensajes_recibidos;
+   vector<arlo_interfaces::msg::EstadoArlo> mensajes_recibidos;
    int task;
    int id;
    int tipo;
-   std::vector<double> entradas;
+   vector<double> entradas;
    int identificador;
    NeuroControllerDriver redNeuronal;
    vector<pair<double, double>> rangos_salidas;

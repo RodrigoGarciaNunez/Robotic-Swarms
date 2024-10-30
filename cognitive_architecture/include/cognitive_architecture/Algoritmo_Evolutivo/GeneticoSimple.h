@@ -19,16 +19,17 @@
 #include <random>
 #include <thread>
 
+
 #define SIN_VALOR -1
 
 using namespace std;
 using Cromosoma = vector<unsigned int>;
 
 typedef struct {
-   int popSize=10;                /* tamaño de la población */
-   int    Gmax=100;                /* número máximo de generaciones */
-   double  Pc=0.7;                 /* porcentaje de cruza */
-   double  Pm=0.3;                 /* porcentaje de mutación */
+   int popSize=5;                /* tamaño de la población */
+   int    Gmax=200;                /* número máximo de generaciones */
+   double  Pc=0.5;                 /* porcentaje de cruza */
+   double  Pm=0.35;                 /* porcentaje de mutación */
    int precision=5;              /* dígitos de precisión */
 } ParamsGA;
 
@@ -47,7 +48,7 @@ public:
 //     };
 
 
-   GeneticoSimple(ProblemaOptim*, ParamsGA&, int id, int task_);
+   GeneticoSimple(ProblemaOptim*, ParamsGA&, int id_, int task_);
    ~GeneticoSimple();
    void optimizar();
 
@@ -95,6 +96,7 @@ private:
 
    string outputDir;
    string inputDir;            /* sirve en el caso de que previamente exista un controlador entrenado del que se deba derivar la poblacion*/
+   string trainDir;
    ofstream archVariables;
    ofstream archEvaluacion;
 

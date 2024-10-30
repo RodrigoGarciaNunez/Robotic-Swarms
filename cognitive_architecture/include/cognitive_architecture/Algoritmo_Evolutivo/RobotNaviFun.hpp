@@ -13,7 +13,7 @@
 #define NUM_SENSORES 96
 #define NUM_SALIDAS 2
 
-RobotNaviFun::RobotNaviFun(int task,int maxSTime, double tThreshold)
+RobotNaviFun::RobotNaviFun(int id,int task,int maxSTime, double tThreshold)
     : ProblemaOptim("RobotNavi", (NUM_SENSORES+2) * NUM_SALIDAS, 0)
 {
     maxSimTime = maxSTime;
@@ -27,6 +27,7 @@ RobotNaviFun::RobotNaviFun(int task,int maxSTime, double tThreshold)
     numHidden = 0;
 
     Task = task;
+    Id = id;
     //// No cambiar ///.
 
     // nVariables es un atributo de la clase base
@@ -56,22 +57,9 @@ RobotNaviFun::~RobotNaviFun() {}
 */
 void RobotNaviFun::evaluateFun(vector<double> const &x, double &fun, vector<double> &restr) const
 {
-    // Inicializar el nodo ROS 2
-    //rclcpp::init(0, nullptr);
-    //auto clientg = rclcpp::Node::make_shared("cliente_reset");
-    //auto reset_simulation_client_ = clientg->create_client<std_srvs::srv::Empty>("/reset_world");
     // Crear un objeto de cliente para el servicio
 
     writeWeightsFile(x);
-
-    //client = std::make_shared<rclcpp::Node>("evaluate_driver_client");
-    
-    //std::cerr << "pase client" << std::endl;
-    //service = client->create_client<arlo_interfaces::srv::EvaluateDriver>("evaluate_driver");
-    //std::cerr << "pase service" << std::endl;
-    //std::cerr << "hice esto del nodo" << std::endl;
-    
-    // hay que hacerle el nodo al servidor. Checar simulation controller cpp
 
     while (!service->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
@@ -84,19 +72,17 @@ void RobotNaviFun::evaluateFun(vector<double> const &x, double &fun, vector<doub
     // Crear una solicitud para el servicio
     auto request = std::make_shared<arlo_interfaces::srv::EvaluateDriver::Request>();
     request->maxtime = 25; // Tiempo máximo para que el robot llegue a la meta.
-    request->weightsfile = fmt::format(popFilePattern, 1); // Usar el id actual
+    request->weightsfile = fmt::format(popFilePattern, Id); // Usar el id actual
     std::cerr << "hice la solicitud del servicio" << std::endl;
     
     // Llamar al servicio y manejar la respuesta
     auto result_future = service->async_send_request(request);
     if (rclcpp::spin_until_future_complete(client, result_future) == rclcpp::FutureReturnCode::SUCCESS) {
         auto result = result_future.get();
-        fun = result->time + result->dist2mates;   //si sí acabó
+        fun = result->time + result->dist2mates;   //sí acabó
 
-
-        // Si el robot no llega a la meta, ajustar el tiempo de recorrido
-        if (result->dist2go > 0) // NO acabó el recorrido
-            fun = request->maxtime*2 + result->dist2go + result->dist2mates;
+        if (result->dist2go > 0)  fun = request->maxtime*2 + result->dist2go + result->dist2mates;  // Si el robot no llega a la meta, ajustar el tiempo de recorrido
+    
     } else {
         std::cout << "Fallo al llamar al servicio evaluate_driver para evaluar el controlador del robot." << std::endl;
     }
@@ -110,13 +96,6 @@ void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
     std::cerr << weightsFileName << std::endl;
     std::ofstream archivo(weightsFileName);
 
-    // if(Task == 1){
-    //     archivo << "98 2 0\n";
-    // }
-    // else{
-    //     archivo << "99 2 0\n";
-    // }
-
     archivo <<  std::to_string(task_map_[Task][0])+" "+std::to_string(task_map_[Task][1])+" 0\n";
 
     for (int i = 0; i < (task_map_[Task][0])*(task_map_[Task][1]); i+=2)
@@ -124,6 +103,7 @@ void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
         archivo << weights[i] << " " << weights[i+1] << " ";
     }
     archivo.close();
+    cerr<< "Archivo de pesos creado" << endl;
 }
 
 // void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const

@@ -125,7 +125,7 @@ void EstadisticasGA::report(ostream &output, Individuo* oldpop, Individuo* newpo
    output << "   Cadena = ";
    output << fmt::format("{}", fmt::join(bestfit.cromo, ""));
    output << "\n   Vector X = ";
-   output << fmt::format("{:24.20f}", fmt::join(bestfit.x, ", "));
+   output << fmt::format("{:24.20f}", fmt::join(bestfit.x, " "));
    //output << fmt::format("{:5.0f}", fmt::join(bestfit.x, ", "));   
    output << "\n   Evaluación f(X) = " << bestfit.eval << "\n" << endl;
 }
@@ -169,7 +169,7 @@ void EstadisticasGA::shortReport(ostream &output, Individuo* oldpop, Individuo* 
    output << "   Cadena = ...";
    //output << fmt::format("{}", fmt::join(bestfit.cromo, ""));
    output << "\n   Vector X = ";
-   output << fmt::format("{:9.3f}", fmt::join(bestfit.x, ", "));
+   output << fmt::format("{:9.3f}", fmt::join(bestfit.x, " "));
 
    output << "\n   Evaluación f(X) = " << bestfit.eval << "\n" << endl;
 
