@@ -1,18 +1,16 @@
 #include "rclcpp/rclcpp.hpp"
 #include "arlo_interfaces/srv/evaluate_driver.hpp"
 #include "SimulationState.hpp"
-// #include "srvEvaluateDriver.h"
 #include "srvEvaluateDriver.h"
 #include <unistd.h>
 #include <thread>
-//#include "gazebo_msgs/srv/spawn_entity.hpp"
 #include "rclcpp_components/node_factory.hpp"
-//#include "arlo_interfaces/msg/estado_arlo.hpp"
 using namespace std;
 
-srvEvaluateDriver::srvEvaluateDriver(int task) : Node("servidor_simulacion")   //hay que agregar el id del robot que le corresponda
+srvEvaluateDriver::srvEvaluateDriver(int task, double x, double y) : Node("servidor_simulacion"),
+                                x_start(x), y_start(y)    //hay que agregar el id del robot que le corresponda
 {
-    rclcpp::QoS qos_profile(10);
+    rclcpp::QoS qos_profile(1);
     // Cambiar la política de confiabilidad a 'Best Effort'
     qos_profile.reliability(rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
 
@@ -25,13 +23,18 @@ srvEvaluateDriver::srvEvaluateDriver(int task) : Node("servidor_simulacion")   /
                 qos_profile, bind(&srvEvaluateDriver::checkSimulationTime, this, placeholders::_1));
 
     nodoOdom = std::make_shared<rclcpp::Node>("suscriptor_Odom");
+
     OdomSus = nodoOdom->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot10/temporal_lobe_",
              qos_profile, bind(&srvEvaluateDriver::checkModelPosition, this, placeholders::_1));
 
     executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
 
-
     publisher_pesos_eval = this->create_publisher<std_msgs::msg::String>("robot10/corteza_premotora_evolutivo", 10);
+
+    ignoreSetter = this->create_publisher<std_msgs::msg::Int64>("robot10/ignoreFlag", 10);
+
+    // ignoreGetter = this->create_subscription<std_msgs::msg::Int64>("/robot10/ignoreFlag", 
+    //             qos_profile, bind(&srvEvaluateDriver::IgnoreSetter, this, placeholders::_1));
 
     RCLCPP_INFO(this->get_logger(), "Servidor listo para recibir solicitudes.");
 
@@ -44,6 +47,9 @@ srvEvaluateDriver::srvEvaluateDriver(int task) : Node("servidor_simulacion")   /
     stuckCounter = 0;
     Task=task;
     num_check = 0;
+    x_start = -6.5;
+    y_start = -13.5;
+
 }
 
 srvEvaluateDriver::~srvEvaluateDriver()
@@ -53,15 +59,31 @@ srvEvaluateDriver::~srvEvaluateDriver()
 bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
                                        const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Response> response)
 {
-    auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
-    auto responseg = reset_simulation_client_->async_send_request(requestg);
+    auto flag = std_msgs::msg::Int64();
+    flag.data = 1;
+    ignoreSetter->publish(flag);
 
     string pesos = request->weightsfile;
-
     auto mensaje = std_msgs::msg::String();
     mensaje.data = pesos;
     publisher_pesos_eval->publish(mensaje);
+
+    auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
+    auto responseg = reset_simulation_client_->async_send_request(requestg);
+
+    while(rclcpp::spin_until_future_complete(clientg, responseg) != rclcpp::FutureReturnCode::SUCCESS){
+        RCLCPP_INFO(this->get_logger(), "Esperando a que el servicio de reset termine");
+    }
     
+    while(arloState.position[0] > x_start && arloState.position[1] > y_start){
+        executor->spin_node_once(nodoOdom);
+        RCLCPP_INFO(this->get_logger(), "Esperando a que los datos estén bien");
+        cerr << arloState.position[0] << arloState.position[1] << endl;
+    }
+
+    flag.data = 0;
+    ignoreSetter->publish(flag);
+
     startSimulation(request->maxtime);
     
     response->time = arloState.finishTime;
@@ -75,6 +97,8 @@ bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::Ev
 
 SimulationState srvEvaluateDriver::startSimulation(int maxtime)
 {
+    
+    arloState.resetState();
     double fx=0;
     maxSimTime = maxtime;
     num_check =0;
@@ -82,13 +106,13 @@ SimulationState srvEvaluateDriver::startSimulation(int maxtime)
     puts("Starting the simulation of a new driver...");
     puts("---------------------------");
 
-    arloState.resetState();
     stuckCounter = 0;
 
     while (rclcpp::ok() && !arloState.hasTimeRunOut && !arloState.finishLineCrossed)
-    {
+    {   
         executor->spin_node_once(nodoClock);
         executor->spin_node_once(nodoOdom);
+        
     }
 
     cout << "hasTimeRunOut= " << arloState.hasTimeRunOut << "\n";
@@ -198,6 +222,7 @@ void srvEvaluateDriver::checkModelPosition(const arlo_interfaces::msg::EstadoArl
     arloState.currentPosition = msg.odom.pose.pose.position.x;
     arloState.position[0] = msg.odom.pose.pose.position.x;
     arloState.position[1] = msg.odom.pose.pose.position.y;
+    cerr << "x: " << arloState.position[0] << " y: " << arloState.position[1] << endl;
     //double d2go = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y);
     arloState.distanceToGo = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y); 
     
@@ -218,6 +243,10 @@ void srvEvaluateDriver::checkSimulationTime(const rosgraph_msgs::msg::Clock &msg
 void srvEvaluateDriver::ejecutaSystem(const string& comando){
     system(comando.c_str());
 }
+
+// void srvEvaluateDriver::IgnoreSetter(const std_msgs::msg::Int64::SharedPtr msg){
+//     ignoreFlag = msg->data;
+// }
 
 // int srvEvaluateDriver::getNumSensors() {
 // 	return NUM_RAYS * NUM_SONARS;

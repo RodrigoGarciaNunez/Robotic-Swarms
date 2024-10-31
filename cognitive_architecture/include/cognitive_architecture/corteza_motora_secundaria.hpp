@@ -50,7 +50,7 @@ public:
 
       publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("robot" + to_string(i) + tipo + "/corteza_motora_secundaria", 10);
 
-      subscription_ = this->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot" + to_string(i) + tipo + "/temporal_lobe_", 10, bind(&cmSec::callback, this, placeholders::_1));
+      subscription_ = this->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot" + to_string(i) + tipo + "/temporal_lobe_", 1, bind(&cmSec::callback, this, placeholders::_1));
 
       char archivo[50];
       
@@ -102,7 +102,7 @@ private:
             reaction.clear();
             reaction.push_back(0);
             reaction.push_back(0);
-            //flag_success = true;
+            flag_success = true;
             //std::cerr << "si llegué" << std::endl;
          }
 
@@ -122,10 +122,9 @@ private:
 
    void callback_evo(const std_msgs::msg::String &msg) // este se debe encargar de setear los pesos a usar en la evaluacion
    {
-      RCLCPP_INFO(this->get_logger(), "me llegaron mis nuevos pesos ->%s", msg.data.c_str());
+      //RCLCPP_INFO(this->get_logger(), "me llegaron mis nuevos pesos ->%s", msg.data.c_str());
       redNeuronal.setParameters(msg.data.c_str());
       flag_success = false;
-      sleep(2);
    }
 
    bool fileExists(string path)

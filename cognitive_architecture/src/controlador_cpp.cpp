@@ -56,7 +56,7 @@ void remSignal(int signal){
 
     //executor
 
-    std::shared_ptr<rclcpp::Node> server = std::make_shared<srvEvaluateDriver>(task);
+    std::shared_ptr<rclcpp::Node> server = std::make_shared<srvEvaluateDriver>(task, 0, 0);
     rclcpp::spin(server);
 
     for (auto& thread : threadsc) {
