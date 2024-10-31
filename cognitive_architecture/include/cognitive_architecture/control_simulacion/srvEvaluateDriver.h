@@ -9,6 +9,7 @@
 #include "rosgraph_msgs/msg/clock.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "std_msgs/msg/int64.hpp"
 #include "arlo_interfaces/msg/estado_arlo.hpp"
 
 using namespace std;
@@ -16,7 +17,7 @@ using namespace std;
 class srvEvaluateDriver: public rclcpp::Node {
 public:
 
-    srvEvaluateDriver(int task);
+    srvEvaluateDriver(int task, double x, double y);
 	virtual ~srvEvaluateDriver();
     SimulationState startSimulation(int maxtime);
     bool evaluateDriver(const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
@@ -32,6 +33,7 @@ private:
     void dist_to_mates(double x);
     double distance(double x1, double y1, double x2, double y2);
     void ejecutaSystem(const std::string& comando); 
+    //void IgnoreSetter()
 
     SimulationState arloState;
     double maxSimTime;  /* Maximum time allowed for the robot to get the goal */
@@ -41,6 +43,8 @@ private:
     long int stuckCounter;
     bool stuck;
     int Task;
+    int ignoreFlag;
+    double x_start, y_start;
 
     rclcpp::Service<arlo_interfaces::srv::EvaluateDriver>::SharedPtr service_;
     rclcpp::Node::SharedPtr  nodoClock;
@@ -51,17 +55,8 @@ private:
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_pesos_eval;
     rclcpp::Node::SharedPtr clientg; 
     rclcpp::Client<std_srvs::srv::Empty>::SharedPtr reset_simulation_client_;
-    //rclcpp::
-    //rclcpp::
-
-    // auto clientg = rclcpp::Node::make_shared("cliente_reset");
-    // auto reset_simulation_client_ = clientg->create_client<std_srvs::srv::Empty>("/reset_simulation");
-
-    // auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
-    // auto responseg = reset_simulation_client_->async_send_request(requestg);
-
-    //rclcpp::executors::SingleThreadedExecutor::SharedPtr executor1;
-    //rclcpp::Subscription<rosgraph_msgs::msg::Clock>::SharedPtr subscription_;
+    rclcpp::Publisher<std_msgs::msg::Int64>::SharedPtr ignoreSetter;
+    rclcpp::Subscription<std_msgs::msg::Int64>::SharedPtr ignoreGetter;
 };
 
 #endif

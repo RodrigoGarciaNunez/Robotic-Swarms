@@ -155,8 +155,6 @@ void GeneticoSimple::inicalizarPob()
 
     if (fileExists(trainDir))
     {
-        cerr << "hola, ya existe un controlador previamente entrenado llamado: " << inputDir << endl;
-
         for (int j = 0; j < popSize; j++)
         {
             oldpop[j].iniciaInfo(problema, precision);
@@ -180,20 +178,8 @@ void GeneticoSimple::inicalizarPob()
 
         weightsFile.close();
 
-        // cerr << "impresion de los pesos leidos" << endl;
-        // cerr << "tamaño de x " << oldpop[0].x.size() <<endl;
-
-        // for(int i=0; i<oldpop[0].x.size(); i++){
-        //     cerr << oldpop[0].x[i] << " ";
-        // }
-        // cerr << endl;
-
         oldpop[0].x2cromosoma();
-
-        // copy(oldpop[0].cromo.begin(), oldpop[0].cromo.end(), ostream_iterator<int>(cerr, " "));
-        // cerr << endl;
-        // cerr << "pase de x2cromo" << endl;
-
+        
         for (int j = 1; j < popSize; j++)
         {
             oldpop[j].copiar(&oldpop[0]);
@@ -208,13 +194,11 @@ void GeneticoSimple::inicalizarPob()
 
     else
     {
-        cerr << "no existe entrenamiento previo " << trainDir << endl;
         for (int j = 0; j < popSize; j++)
         {
             oldpop[j].insuflar(problema, precision);
             newpop[j].insuflar(problema, precision);
         }
-        cerr << "pase de insuflar" << endl;
     }
 
     // Si Pm no tiene un valor asignado, se calcula como 1 dividido por el tamaño del cromosoma
@@ -232,7 +216,6 @@ void GeneticoSimple::evaluarPoblacion(Individuo *pop)
 
         pop[i].aptitud = 1.0 / (1 + pop[i].eval);
     }
-    cerr<< "evaluarPoblacion" << endl;
 }
 
 // Método para seleccionar los padres utilizando el método de la ruleta
@@ -366,7 +349,6 @@ void GeneticoSimple::calcularValEsperado(Individuo *pop)
         sumaptitud += pop[j].aptitud;
 
     stats.avgApt = sumaptitud / popSize;
-    cerr<< "stats.avgApt " << stats.avgApt << endl;
 
     sumvalesp = 0.0;
 
@@ -385,7 +367,7 @@ void GeneticoSimple::elitismo(Individuo *pop, int gen)
     for (int j = 0; j < popSize; j++)
     {
         if (pop[j].aptitud >= stats.bestfit.aptitud)
-        {   cerr << "hay elitismo: " << j <<endl;
+        {   
             stats.bestfit.copiar(&pop[j]);
             stats.generationBestFit = gen;
             stats.positionBestFit = j + 1;

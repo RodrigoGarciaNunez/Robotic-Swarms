@@ -10,19 +10,16 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import Range  #este tiene que cambiar a LaserScan
 from sensor_msgs.msg import LaserScan
-import sys
-import time
-import keyboard
 import random as rd
 from threading import Thread
 from gazebo_msgs.msg import ModelStates
 
 from nav_msgs.msg import Odometry
 
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64MultiArray, Int64
 
 
-#entradas: s1(todos los rayitos), s2, s3, s4, x*, y*
+#entradas: s1(todos los rayitos), s2, s3, s4, x, y
 #salidas: vel_lineal_x, vel_angular_z
 
 #este modulo se encarga de enviar las instrucciones a las ruedas del robot a través del plugin del differential drive
@@ -32,27 +29,33 @@ class Nodo(Node):
     #constructor
     def __init__(self,i,tipo):
         super().__init__("corteza_motora_primaria_"+str(i)+tipo)
+        
+        self.ignoreFlag = 0
         self.mensajes_recibidos=[]
         self.diccionario_sensores = {'link_sensor_center': 1, 'link_sensor_back': 2, 'link_sensor_right': 3, 'link_sensor_left': 4}
 
         self.publisher =  self.create_publisher(Twist, "robot"+str(i)+tipo+"/cmd_vel",10)
 
-        #self.suscriptor1 = self.create_subscription(LaserScan,"robot"+str(i)+"/corteza_motora_secundaria", self.mover, 10)
-        #self.suscriptor2 = self.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.pos, 10)
-
         self.suscriptorNN= self.create_subscription(Float64MultiArray,"robot"+str(i)+tipo+"/corteza_motora_secundariaNN", self.moverNN, 10)
-        #self.suscriptor3 = self.create_subscription(Range,"temporal_lobe_"+str(i), self.mover, 10)
-        #self.suscriptor4 = self.create_subscription(Range,"temporal_lobe_"+str(i), self.mover, 10)
 
-    #def pos(self, mensaje:Odometry):
-    #    print(str(mensaje.pose.pose.position.x))
+        self.subsIgnoreFlag = self.create_subscription(Int64, "robot"+str(i)+tipo+"/ignoreFlag", self.SetIgnoreFlag, 10)
+
+    def SetIgnoreFlag(self, mensaje:Int64):
+        self.ignoreFlag = mensaje.data
 
     def moverNN(self, mensaje:Float64MultiArray):
         movimiento=Twist()
-        movimiento.linear.x=mensaje.data[0]
-        movimiento.angular.z=mensaje.data[1]
+
+        if self.ignoreFlag == 1:
+            movimiento.linear.x=0.0
+            movimiento.angular.z=0.0
+            print("Ando ignorando")
+        else:
+            movimiento.linear.x=mensaje.data[0]
+            movimiento.angular.z=mensaje.data[1]
+        
         self.publisher.publish(movimiento)
-        #print(mensaje.data)
+
 
     def mover(self, mensaje:LaserScan):
        #este pass se comenta

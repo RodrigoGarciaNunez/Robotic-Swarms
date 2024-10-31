@@ -19,10 +19,8 @@ RobotNaviFun::RobotNaviFun(int id,int task,int maxSTime, double tThreshold)
     maxSimTime = maxSTime;
     touchThreshold = tThreshold;
 
-
-
     //// Estos son parámetros para el controlador. NO deben cambiarlos
-    numInputsNN = NUM_SENSORES+2;    // La entrada del controlador son 96 sensores
+    numInputsNN = NUM_SENSORES+2;    // La entrada del controlador son 96 sensores + X y Y del robot.
     numOutputsNN = NUM_SALIDAS;    // La salida del controlador son los actuadores de velocidad y giro.
     numHidden = 0;
 
@@ -73,7 +71,7 @@ void RobotNaviFun::evaluateFun(vector<double> const &x, double &fun, vector<doub
     auto request = std::make_shared<arlo_interfaces::srv::EvaluateDriver::Request>();
     request->maxtime = 25; // Tiempo máximo para que el robot llegue a la meta.
     request->weightsfile = fmt::format(popFilePattern, Id); // Usar el id actual
-    std::cerr << "hice la solicitud del servicio" << std::endl;
+    //std::cerr << "hice la solicitud del servicio" << std::endl;
     
     // Llamar al servicio y manejar la respuesta
     auto result_future = service->async_send_request(request);
@@ -103,7 +101,6 @@ void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
         archivo << weights[i] << " " << weights[i+1] << " ";
     }
     archivo.close();
-    cerr<< "Archivo de pesos creado" << endl;
 }
 
 // void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const

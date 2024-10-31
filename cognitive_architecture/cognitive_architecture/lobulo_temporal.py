@@ -25,6 +25,8 @@ class temporal_lobe(Node):
         self.estado = EstadoArlo()
         self.estadoO = MatesOdom()
         self.dist_to_mates = 0.0
+        self.x = 10000000
+        self.y = 10000000
 
         if self.tipo == "1":
             self.numMates = numMates+1   #aqui, en caso los nodos sean dummy, entonces se agrega un mate más, refiriendonos al bot soñando
