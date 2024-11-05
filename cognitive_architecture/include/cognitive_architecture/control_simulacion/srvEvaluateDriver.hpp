@@ -75,7 +75,7 @@ bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::Ev
         RCLCPP_INFO(this->get_logger(), "Esperando a que el servicio de reset termine");
     }
     
-    while(arloState.position[0] > x_start && arloState.position[1] > y_start){
+    while((arloState.position[0] > x_start) && (arloState.position[1] > y_start)){
         executor->spin_node_once(nodoOdom);
         RCLCPP_INFO(this->get_logger(), "Esperando a que los datos estén bien");
         cerr << arloState.position[0] << arloState.position[1] << endl;
@@ -222,7 +222,7 @@ void srvEvaluateDriver::checkModelPosition(const arlo_interfaces::msg::EstadoArl
     arloState.currentPosition = msg.odom.pose.pose.position.x;
     arloState.position[0] = msg.odom.pose.pose.position.x;
     arloState.position[1] = msg.odom.pose.pose.position.y;
-    cerr << "x: " << arloState.position[0] << " y: " << arloState.position[1] << endl;
+    //cerr << "x: " << arloState.position[0] << " y: " << arloState.position[1] << endl;
     //double d2go = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y);
     arloState.distanceToGo = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y); 
     

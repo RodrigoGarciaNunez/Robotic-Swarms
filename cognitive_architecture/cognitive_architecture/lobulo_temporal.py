@@ -48,6 +48,7 @@ class temporal_lobe(Node):
         self.susMates = self.create_subscription(MatesOdom,"MatesOdom", self.procesaMatesOdom, 10)
         self.pubMates =  self.create_publisher(MatesOdom,"MatesOdom",10)
 
+        #self.FirstOdom = self.create_service(MatesOdom,"FirstOdom", self.FirstOdomCallback)
 
     def procesaMatesOdom(self, odoms:MatesOdom):
         
@@ -65,6 +66,9 @@ class temporal_lobe(Node):
         self.estadoO.odom = odom
         self.estadoO.name = str(self.i)+str(self.tipo)
         self.pubMates.publish(self.estadoO)
+        # if(self.x == 10000000):
+        #     self.x = odom.pose.pose.position.x
+        #     self.y = odom.pose.pose.position.y
 
 
     def procesa1(self, rango:LaserScan):  #link_sensor_center
