@@ -44,12 +44,8 @@ public:
             publisherMates->publish(actualizaMates);
         }
         
-        // subscription_ =
-        //     this->create_subscription<arlo_interfaces::msg::PesosStruct>("robot" + std::to_string(i) + "0/corteza_motora_secundaria_pesos", 10, std::bind(&cp::ejecutaGenetico, this, std::placeholders::_1));
+        //timer_ = this->create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico, this));
 
-        timer_ = this->create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico, this));
-
-        // this->ejecutaGenetico();
     }
 
 private:
