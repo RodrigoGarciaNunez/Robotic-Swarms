@@ -1,10 +1,14 @@
 #include "robot.h"
 
 Robot::Robot(int id , char tipo, int task) {
-    p = new RobotNaviFun(id, task);
-    corteza_premotora = make_shared<cp>(id,p,params,&bandera,task);
-    corteza_motora_secundaria = make_shared<cmSec>(id, tipo, task);
-    server = make_shared<srvEvaluateDriver>(task, 0, 0);
+    id_ = id;
+    tipo_ = tipo;
+    task_ = task;
+
+    corteza_motora_secundaria = make_shared<cmSec>(id_, tipo_, task_);
+
+    //corteza_premotora = make_shared<cp>(id_, p, params, &bandera, task_);
+    //server = make_shared<srvEvaluateDriver>(task, 0, 0);
 }
 
 Robot::~Robot() {}
@@ -14,6 +18,11 @@ void Robot::ejecutar() {
 }
 
 void Robot::SimulationSerever() {
+    p = new RobotNaviFun(id_, task_);
+    
+    corteza_premotora = make_shared<cp>(id_,p,params,&bandera,task_);
+    
+    server = make_shared<srvEvaluateDriver>(1, 0, 0);
     thread serverThread([this] {
         rclcpp::spin(server);
     });

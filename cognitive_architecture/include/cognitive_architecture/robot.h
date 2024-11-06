@@ -23,6 +23,9 @@ public:
     rclcpp::Node::SharedPtr corteza_motora_secundaria;
     rclcpp::Node::SharedPtr server;
 
+    int id_;
+    char tipo_;
+    int task_;
     RobotNaviFun* p;
     ParamsGA params;
     bool bandera=true; 

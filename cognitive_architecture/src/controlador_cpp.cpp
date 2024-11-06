@@ -9,6 +9,8 @@
 #include "cognitive_architecture/robot.hpp"
  
 
+using namespace std;
+
 int tipo;
 int task;
 int num_bots;
@@ -25,30 +27,33 @@ int main(int argc, char **argv){
 
     rclcpp::init(argc, argv);
 
-    std::signal(SIGUSR1, remSignal);
-    tipo = std::atoi(argv[1]);
-    num_bots = std::atoi(argv[2]);
-    task = std::atoi(argv[3]);
+    //std::signal(SIGUSR1, remSignal);
+    tipo = atoi(argv[1]);
+    num_bots = atoi(argv[2]);
+    task = atoi(argv[3]);
     
-    std::vector<Robot> robots;
+    vector<Robot> robots;
 
+    cerr << "tipo: " << tipo << " num_bots: " << num_bots << " task: " << task << endl;
     // Crear nodos y agregarlos a la lista
-    for(int i=1; i< num_bots+1; i++){
+    for(int i=1; i <= num_bots; i++){
         robots.push_back(Robot(i, *argv[1], task));
     }
+    cerr << "hice los bots"<<endl;
     
-    std::vector<std::thread> threads;
+    vector<thread> threads;
     
     for (int i=0; i< static_cast<int>(robots.size()); i++){
-        threads.push_back(std::thread([&robots, i]() {
+        threads.push_back(thread([&robots, i]() {
             robots[i].ejecutar();
         }));
     }
+    cerr<<"ejecuta los bots"<<endl;
 
     
     if(tipo==0){
         char senal;
-        std::cin >> senal;
+        cin >> senal;
         if (senal=='1') robots[0].SimulationSerever();
 
     }
