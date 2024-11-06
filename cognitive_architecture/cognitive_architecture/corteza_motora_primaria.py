@@ -23,7 +23,7 @@ from std_msgs.msg import Float64MultiArray, Int64
 #salidas: vel_lineal_x, vel_angular_z
 
 #este modulo se encarga de enviar las instrucciones a las ruedas del robot a través del plugin del differential drive
-class Nodo(Node):
+class CortezaMotoraPrimaria(Node):
 
     msg=Twist()
     #constructor
