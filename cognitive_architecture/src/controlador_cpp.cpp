@@ -3,7 +3,6 @@
 #include <memory>
 #include <thread>
 #include <vector>
-#include "arlo_interfaces/msg/pesos_struct.hpp"
 #include <csignal>
 #include <cstdlib>
 #include "cognitive_architecture/robot.hpp"
@@ -34,12 +33,10 @@ int main(int argc, char **argv){
     
     vector<Robot> robots;
 
-    cerr << "tipo: " << tipo << " num_bots: " << num_bots << " task: " << task << endl;
     // Crear nodos y agregarlos a la lista
     for(int i=1; i <= num_bots; i++){
         robots.push_back(Robot(i, *argv[1], task));
     }
-    cerr << "hice los bots"<<endl;
     
     vector<thread> threads;
     
@@ -48,8 +45,6 @@ int main(int argc, char **argv){
             robots[i].ejecutar();
         }));
     }
-    cerr<<"ejecuta los bots"<<endl;
-
     
     if(tipo==0){
         char senal;

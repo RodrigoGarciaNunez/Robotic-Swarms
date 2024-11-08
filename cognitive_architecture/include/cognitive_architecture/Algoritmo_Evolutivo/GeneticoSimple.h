@@ -26,10 +26,10 @@ using namespace std;
 using Cromosoma = vector<unsigned int>;
 
 typedef struct {
-   int popSize=5;                /* tamaño de la población */
+   int popSize=20;                /* tamaño de la población */
    int    Gmax=200;                /* número máximo de generaciones */
-   double  Pc=0.5;                 /* porcentaje de cruza */
-   double  Pm=0.35;                 /* porcentaje de mutación */
+   double  Pc=0.7;                 /* porcentaje de cruza */
+   double  Pm=0.3;                 /* porcentaje de mutación */
    int precision=5;              /* dígitos de precisión */
 } ParamsGA;
 

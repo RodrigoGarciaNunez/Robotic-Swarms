@@ -47,8 +47,8 @@ srvEvaluateDriver::srvEvaluateDriver(int task, double x, double y) : Node("servi
     stuckCounter = 0;
     Task=task;
     num_check = 0;
-    x_start = -6.5;
-    y_start = -13.5;
+    x_start = -6.6;
+    y_start = -13.6;
 
 }
 
@@ -59,6 +59,7 @@ srvEvaluateDriver::~srvEvaluateDriver()
 bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
                                        const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Response> response)
 {
+    //arloState.resetState();
     auto flag = std_msgs::msg::Int64();
     flag.data = 1;
     ignoreSetter->publish(flag);
@@ -75,7 +76,7 @@ bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::Ev
         RCLCPP_INFO(this->get_logger(), "Esperando a que el servicio de reset termine");
     }
     
-    while((arloState.position[0] > x_start) && (arloState.position[1] > y_start)){
+    while((arloState.position[0] > x_start) || (arloState.position[1] > y_start)){
         executor->spin_node_once(nodoOdom);
         RCLCPP_INFO(this->get_logger(), "Esperando a que los datos estén bien");
         cerr << arloState.position[0] << arloState.position[1] << endl;

@@ -36,7 +36,7 @@ class CortezaMotoraPrimaria(Node):
 
         self.publisher =  self.create_publisher(Twist, "robot"+str(i)+tipo+"/cmd_vel",10)
 
-        self.suscriptorNN= self.create_subscription(Float64MultiArray,"robot"+str(i)+tipo+"/corteza_motora_secundariaNN", self.moverNN, 10)
+        self.suscriptorNN= self.create_subscription(Float64MultiArray,"robot"+str(i)+tipo+"/corteza_motora_secundariaNN", self.moverNN, 1)
 
         self.subsIgnoreFlag = self.create_subscription(Int64, "robot"+str(i)+tipo+"/ignoreFlag", self.SetIgnoreFlag, 10)
 
@@ -49,7 +49,6 @@ class CortezaMotoraPrimaria(Node):
         if self.ignoreFlag == 1:
             movimiento.linear.x=0.0
             movimiento.angular.z=0.0
-            print("Ando ignorando")
         else:
             movimiento.linear.x=mensaje.data[0]
             movimiento.angular.z=mensaje.data[1]

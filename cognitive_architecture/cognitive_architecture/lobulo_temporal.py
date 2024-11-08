@@ -37,16 +37,16 @@ class temporal_lobe(Node):
 
         self.diccionario_sensores = {'link_sensor_center': 1, 'link_sensor_back': 2, 'link_sensor_right': 3, 'link_sensor_left': 4}
 
-        self.publisher =  self.create_publisher(EstadoArlo,"robot"+str(i)+tipo+"/temporal_lobe_",10)
-        self.suscriptor1 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico1/out", self.procesa1, 10)
-        self.suscriptor2 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico2/out", self.procesa2, 10)
-        self.suscriptor3 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico3/out", self.procesa3, 10)
-        self.suscriptor4 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico4/out", self.procesa4, 10)
-        self.suscriptorOdom = self.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.checaOdom, 10)
+        self.publisher =  self.create_publisher(EstadoArlo,"robot"+str(i)+tipo+"/temporal_lobe_",1)
+        self.suscriptor1 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico1/out", self.procesa1, 1)
+        self.suscriptor2 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico2/out", self.procesa2, 1)
+        self.suscriptor3 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico3/out", self.procesa3, 1)
+        self.suscriptor4 = self.create_subscription(LaserScan,"robot"+str(i)+tipo+"/ultrasonico4/out", self.procesa4, 1)
+        self.suscriptorOdom = self.create_subscription(Odometry,"robot"+str(i)+tipo+"/odom", self.checaOdom, 1)
         self.suscriptorMates = self.create_subscription(Int64,"robot10/redefineMates", self.redefineNumMates, 10)
 
-        self.susMates = self.create_subscription(MatesOdom,"MatesOdom", self.procesaMatesOdom, 10)
-        self.pubMates =  self.create_publisher(MatesOdom,"MatesOdom",10)
+        self.susMates = self.create_subscription(MatesOdom,"MatesOdom", self.procesaMatesOdom, 1)
+        self.pubMates =  self.create_publisher(MatesOdom,"MatesOdom",1)
 
         #self.FirstOdom = self.create_service(MatesOdom,"FirstOdom", self.FirstOdomCallback)
 
