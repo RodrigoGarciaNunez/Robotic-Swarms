@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <random>
 
 #define INPUT_LAYER 0
 
@@ -21,13 +22,14 @@ using namespace std;
 class NeuroControllerDriver {
 public:
 
-    NeuroControllerDriver(int nIn, int nOut, vector<pair<double,double> > &oRanges);
+    NeuroControllerDriver(int nIn, int nOut, double dropOutRate,vector<pair<double,double> > &oRanges);
 	~NeuroControllerDriver();
 
 	void driveArlo(vector<double> const & inputs, vector<double>& reaction);
     void setParameters(const char* weightsFile);
     void vectorEnvia(vector<double> & output);
 	int numWeights();
+    bool dropout(double p);
 
 private:
     /* Input file of NN weights */
@@ -46,6 +48,9 @@ private:
     vector<int> numNodesLayer;   // Number of nodes of each layer.
     vector<vector<double> > layerOutputs;   // Outputs of each layer (input layer values are considered the first output values).
     vector<vector<vector<double> > > weights; // Set of all the weight matrices (array of matrices).
+
+    double dropoutRate;
+    mt19937 rng; // Random number generator. 
 
     void readWeights();
     void printWeights();

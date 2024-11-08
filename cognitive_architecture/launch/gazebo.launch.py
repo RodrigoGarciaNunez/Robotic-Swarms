@@ -142,7 +142,7 @@ def generate_launch_description(args = None):
     gazebo,
     OpaqueFunction(function=create_bots),
     #controladorcpp,
-    #controladorPython
+    controladorPython
 ])
 
 #https://www.youtube.com/watch?v=x-s0jUZJ4rQ&list=PL3AvrhrDIyfHIPE1RS63ve4JltbWpO5uF&index=2

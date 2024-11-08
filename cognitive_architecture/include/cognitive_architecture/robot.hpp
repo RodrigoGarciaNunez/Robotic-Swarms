@@ -5,7 +5,7 @@ Robot::Robot(int id , char tipo, int task) {
     tipo_ = tipo;
     task_ = task;
 
-    corteza_motora_secundaria = make_shared<cmSec>(id_, tipo_, task_);
+    corteza_motora_secundaria = make_shared<CmSec>(id_, tipo_, task_);
 
     //corteza_premotora = make_shared<cp>(id_, p, params, &bandera, task_);
     //server = make_shared<srvEvaluateDriver>(task, 0, 0);
@@ -21,13 +21,14 @@ void Robot::SimulationSerever() {
     p = new RobotNaviFun(id_, task_);
     
     corteza_premotora = make_shared<cp>(id_,p,params,&bandera,task_);
-    
     server = make_shared<srvEvaluateDriver>(1, 0, 0);
+    
     thread serverThread([this] {
         rclcpp::spin(server);
     });
 
     thread cpThread([this] {
+        //corteza_premotora.ejecutaGenetico();
         rclcpp::spin(corteza_premotora);
     });
     

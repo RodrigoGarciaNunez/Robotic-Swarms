@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
 
-import os
 import rclpy
-from rclpy import executors
-from rclpy.node import Node
-from std_msgs.msg import String
-from gazebo_msgs.srv import SpawnEntity
-from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Range
 import sys
-import time
-import random as rd
 from threading import Thread
 import cognitive_architecture.robot as robot
 

@@ -1,9 +1,9 @@
 #include "NeuroControllerDriver.h"
 
-NeuroControllerDriver::NeuroControllerDriver(int nIn, int nOut, vector<pair<double, double>> &oRanges)
+NeuroControllerDriver::NeuroControllerDriver(int nIn, int nOut, double dropOutRate, vector<pair<double, double>> &oRanges)
 { // constructor
    
-   oRanges.push_back(make_pair(-0.5,1.2)); //linea
+   oRanges.push_back(make_pair(-0.5,1.2)); //linear
    oRanges.push_back(make_pair(-0.8,0.8));  //angular
 
    nInputs = nIn;
@@ -14,6 +14,12 @@ NeuroControllerDriver::NeuroControllerDriver(int nIn, int nOut, vector<pair<doub
    numLayers = numNodesLayer.size();    // aqui se setea el número de capas. ahorita es a 2 porque no hay capas ocultas
    nHiddenLayers = numLayers - 2;       // (Excluding input and output layers) por el momento, no hay capas ocultas
 
+   dropoutRate = dropOutRate; // turns off 20% of the neurons.
+
+   random_device rd;
+   rng = mt19937(random_device{}());
+   rng.seed(rd());
+
    // Set correct size of each vector of layer outputs (input is considered here to simplify computations later).
    for (auto nNodes : numNodesLayer)
       layerOutputs.push_back(vector<double>(nNodes));
@@ -23,19 +29,10 @@ NeuroControllerDriver::NeuroControllerDriver(int nIn, int nOut, vector<pair<doub
       weights.push_back(vector<vector<double>>(numNodesLayer[i],
                                                vector<double>(numNodesLayer[i + 1], 0.0)));
 
-   /*for (auto matriz : weights){
-      for(auto columna: matriz){
-         for(int i=0; i<columna.size(); i++){
-            std::cout << columna[i] << " ";
-         }
-         std::cout << "\n";
-      }
-      std::cout << "\n";
-   }*/
 }
 
 NeuroControllerDriver::~NeuroControllerDriver()
-{ // este es el destructor
+{ 
 }
 
 void NeuroControllerDriver::vectorEnvia(vector<double> &output)
@@ -88,15 +85,10 @@ void NeuroControllerDriver::driveArlo(const vector<double> &inputs, vector<doubl
    //printOutputs(layerOutputs[nHiddenLayers + 1]);
    checkOutputs(reaction);
 
-   //cout << "En NN: reaction[0]= " << reaction[0] << "\n";
-   //cout << "En NN: reaction[1]= " << reaction[1] << "\n";
-
-   // reaction[0]=1;
-   // cout << "Esta es una prueba " << reaction[0] << "\n";
 }
 
 /* Network with n hidden layers + output layer. */
-void NeuroControllerDriver::nnOuputs() // esta está bien
+void NeuroControllerDriver::nnOuputs() 
 {
    // cerr << "\n --------> Calling nnOutputs with ONE HIDDEN LAYER <---------" << endl;
 
@@ -105,7 +97,6 @@ void NeuroControllerDriver::nnOuputs() // esta está bien
    // Compute outputs for each layer 1 <= k <= numLayers-1 (counting input & output layer)
    // Weights layer_k-1 X layer_k
    // k-1 = 0 is the input layer.
-   // std::cout << "estoy aqui nno 1" << std::flush;
    for (int k = 1; k < numLayers; ++k)
    { // ahorita numLayers es igual 2
       // For each node j of hidden layer k, compute its output.
@@ -113,16 +104,16 @@ void NeuroControllerDriver::nnOuputs() // esta está bien
       {
          layerOutputs[k][j] = 0.0;
          // For each input i of layer k-1
-         for (int i = 0; i < numNodesLayer[k - 1]; i++)
-         {
-            layerOutputs[k][j] += layerOutputs[k - 1][i] * weights[k - 1][i][j];
+         for (int i = 0; i < numNodesLayer[k - 1]; i++) //el dropout sería aquí
+         {  
+            if (!dropout(dropoutRate)) layerOutputs[k][j] += layerOutputs[k - 1][i] * weights[k - 1][i][j];
          }
          // Normalize each output of the hidden layer.
          //layerOutputs[k][j] = sigmoid(layerOutputs[k][j], 0.01);
       }
    }
    // For the output values of the NN
-   adjustOutputs(layerOutputs[numLayers-1]);    //esto se tiene que descomentar
+   adjustOutputs(layerOutputs[numLayers-1]);    
 }
 
 int NeuroControllerDriver::numWeights()
@@ -191,7 +182,6 @@ void NeuroControllerDriver::readWeights()
          exit(0);
       }
 
-      // cerr << "pase el if todo raro" << endl;
       //  NOTE: We assume that the number of nodes in hidden layers is correct.
 
       // Read the weights for every layer in the NN.
@@ -202,7 +192,6 @@ void NeuroControllerDriver::readWeights()
 
       weightsFile.close();
 
-      //cerr << "pase los for todo raro" << endl;
       // printWeights();
    }
    catch (ifstream::failure e)
@@ -241,4 +230,10 @@ void NeuroControllerDriver::adjustOutputs(vector<double> &y)
 double NeuroControllerDriver::sigmoid(double x, double factor)
 {
    return (1.0 / (1.0 + exp(-factor * x)));
+}
+
+bool NeuroControllerDriver::dropout(double p)
+{
+   uniform_real_distribution<> rdis(0.0, 1.0);
+   return rdis(rng) <= p;
 }

@@ -48,7 +48,6 @@ ament_python_install_package(${PROJECT_NAME})
 #install python executables in the ros2_iron/install/cognitive_architecture/lib/cognitive_architecture/ folder
 install(PROGRAMS
   scripts/Controlador_individuo.py
-  scripts/prueba_alan.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
