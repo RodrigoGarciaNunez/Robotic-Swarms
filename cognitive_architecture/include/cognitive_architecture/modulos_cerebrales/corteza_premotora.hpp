@@ -10,11 +10,9 @@ cp::cp(int i, RobotNaviFun *p, ParamsGA params, bool *bandera, int task) : Node(
 {
     inputDir = "./archivo_pesos_" + std::to_string(identificador) + ".txt";
 
-    client_getWeights = this->create_client<arlo_interfaces::srv::GetImportantWeights>("service_importantWeights");
-
     reset_simulation_client_ = this->create_client<std_srvs::srv::Empty>("/reset_world");
 
-    publisher_ = this->create_publisher<std_msgs::msg::String>("robot" + std::to_string(i) + "0/corteza_premotora_evolutivo", 10);
+    publisher_ = this->create_publisher<std_msgs::msg::String>("robot" + std::to_string(i) + "0/corteza_premotora_pesos", 10);
 
     if (task == 2)
     { // si la task a evaluar ocupa actualizar el numero de mates
@@ -24,7 +22,7 @@ cp::cp(int i, RobotNaviFun *p, ParamsGA params, bool *bandera, int task) : Node(
         publisherMates->publish(actualizaMates);
     }
 
-    timer_ = this->create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico, this));
+    //timer_ = this->create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico, this));
 }
 
 cp::~cp() {}
@@ -37,10 +35,6 @@ void cp::resetGazebo() const
 
 void cp::ejecutaGenetico()
 {
-    RCLCPP_INFO(this->get_logger(), "me llegaron los pesos ");
-
-    auto pesos = std_msgs::msg::String();
-
     genetico.optimizar();
 
     auto mensajePesos = std_msgs::msg::String();
@@ -54,6 +48,24 @@ void cp::ejecutaGenetico()
     *flag = false;
 }
 
-void cp::Mirroing()
+void cp::Mirroring(int i)
 {
+    client_getWeights = this->create_client<arlo_interfaces::srv::GetImportantWeights>("robot"+to_string(i)+"0/service_importantWeights");
+
+    auto request = std::make_shared<arlo_interfaces::srv::GetImportantWeights::Request>();
+    auto response = client_getWeights->async_send_request(request);
+    
+    if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), response) == rclcpp::FutureReturnCode::SUCCESS) {
+        auto result = response.get();
+        cerr << "Pesos obtenidos " << result->weightsfile << endl;
+
+        auto mensajePesos = std_msgs::msg::String(); 
+        mensajePesos.data = result->weightsfile;
+        publisher_->publish(mensajePesos);
+
+    } else {
+        cout << "Fallo al llamar al servicio para obtener pesos para imitación." << endl;
+    }
+    
+    cerr << "Terminó el cp::mirroring" << endl; 
 }

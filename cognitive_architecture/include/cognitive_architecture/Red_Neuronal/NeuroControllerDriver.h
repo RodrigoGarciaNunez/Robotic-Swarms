@@ -5,8 +5,8 @@
  *      Author: antonio
  */
 
-#ifndef SRC_NEUROCONTROLLERDRIVER_HPP_
-#define SRC_NEUROCONTROLLERDRIVER_HPP_
+#ifndef SRC_NEUROCONTROLLERDRIVER_H_
+#define SRC_NEUROCONTROLLERDRIVER_H_
 
 #include <iostream>
 #include <fstream>
@@ -26,10 +26,12 @@ public:
 	~NeuroControllerDriver();
 
 	void driveArlo(vector<double> const & inputs, vector<double>& reaction);
-    void setParameters(const char* weightsFile);
+    void setParameters(const char* weightsFile, double dropOutRate);
     void vectorEnvia(vector<double> & output);
 	int numWeights();
     bool dropout(double p);
+
+    double dropoutRate;
 
 private:
     /* Input file of NN weights */
@@ -49,7 +51,7 @@ private:
     vector<vector<double> > layerOutputs;   // Outputs of each layer (input layer values are considered the first output values).
     vector<vector<vector<double> > > weights; // Set of all the weight matrices (array of matrices).
 
-    double dropoutRate;
+    //double dropoutRate;
     mt19937 rng; // Random number generator. 
 
     void readWeights();

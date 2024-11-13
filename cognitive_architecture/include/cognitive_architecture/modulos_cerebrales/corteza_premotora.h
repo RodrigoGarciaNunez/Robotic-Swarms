@@ -28,7 +28,7 @@ public:
     virtual ~cp();
     void ejecutaGenetico();
     void resetGazebo() const;
-    void Mirroing();    
+    void Mirroring(int i);
 
 private:
     
