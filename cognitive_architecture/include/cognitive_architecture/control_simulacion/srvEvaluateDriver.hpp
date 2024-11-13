@@ -29,7 +29,7 @@ srvEvaluateDriver::srvEvaluateDriver(int task, double x, double y) : Node("servi
 
     executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
 
-    publisher_pesos_eval = this->create_publisher<std_msgs::msg::String>("robot10/corteza_premotora_evolutivo", 10);
+    publisher_pesos_eval = this->create_publisher<std_msgs::msg::String>("robot10/corteza_premotora_pesos", 10);
 
     ignoreSetter = this->create_publisher<std_msgs::msg::Int64>("robot10/ignoreFlag", 10);
 

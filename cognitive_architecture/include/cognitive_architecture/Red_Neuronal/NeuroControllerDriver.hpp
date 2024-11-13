@@ -53,12 +53,11 @@ void NeuroControllerDriver::vectorEnvia(vector<double> &output)
    }
 }
 
-void NeuroControllerDriver::setParameters(const char *weightsFile)
+void NeuroControllerDriver::setParameters(const char *weightsFile, double dropOutRate)
 {
    inputName.assign(weightsFile);
-   // std::cout << "Holaaa" << std::flush;
    readWeights();
-   // printWeights();
+   dropoutRate = dropOutRate;
 }
 
 void NeuroControllerDriver::driveArlo(const vector<double> &inputs, vector<double> &reaction)

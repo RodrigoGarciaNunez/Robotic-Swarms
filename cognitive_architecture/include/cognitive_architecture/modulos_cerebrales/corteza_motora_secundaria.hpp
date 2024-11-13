@@ -3,11 +3,11 @@
 // este nodo contiene la red neuronal que se encarga de decidir los movimientos del robot
 // cmSec es corteza motora Secundaria
 
-CmSec::CmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + to_string(i) + tipo), identificador(i), task(task),
-                                    redNeuronal(task_map[task][0], task_map[task][1], 0.0, rangos_salidas), tipo(tipo - 48) // -48 por el ascci
+CmSec::CmSec(int i, char tipo, int task, double dropOut) : Node("Corteza_motora_secundaria_" + to_string(i) + tipo), identificador(i), task(task),
+                                    redNeuronal(task_map[task][0], task_map[task][1], dropOut, rangos_salidas), tipo(tipo - 48) // -48 por el ascci
 {
    flag_success = false;
-   service_getWeights =  this->create_service<arlo_interfaces::srv::GetImportantWeights>("service_importantWeights", 
+   service_getWeights =  this->create_service<arlo_interfaces::srv::GetImportantWeights>("robot"+to_string(i)+tipo+"/service_importantWeights", 
                 bind(&CmSec::service_importantWeights,this, placeholders::_1, placeholders::_2));
 
    publisher_NN = this->create_publisher<std_msgs::msg::Float64MultiArray>
@@ -17,7 +17,7 @@ CmSec::CmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + t
                ("robot" + to_string(i) + tipo + "/corteza_motora_secundaria_pesos", 10);
 
    subscriber_evo = this->create_subscription<std_msgs::msg::String>
-               ("robot" + to_string(i) + tipo + "/corteza_premotora_evolutivo", 10, bind(&CmSec::setParameters_evo, this, placeholders::_1));
+               ("robot" + to_string(i) + tipo + "/corteza_premotora_pesos", 10, bind(&CmSec::setParameters_evo, this, placeholders::_1));
 
    publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>
                ("robot" + to_string(i) + tipo + "/corteza_motora_secundaria", 10);
@@ -27,6 +27,7 @@ CmSec::CmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + t
 
 
    char archivo[50];
+   
 
    if (string(1, tipo) == "1") sprintf(archivo, "./archivo_pesos_predeterminado_%d.txt", task);
    else sprintf(archivo, "./archivo_pesos_%d_%d.txt", identificador, task);
@@ -36,8 +37,8 @@ CmSec::CmSec(int i, char tipo, int task) : Node("Corteza_motora_secundaria_" + t
       cerr << "no existe un archivo entrenado" << endl;
       genera_pesos(archivo);
    }
-
-   redNeuronal.setParameters(archivo);
+   weightsFile = archivo;
+   redNeuronal.setParameters(archivo, dropOut);
 }
  
 CmSec::~CmSec(){}
@@ -97,7 +98,7 @@ void CmSec::ejecutaNN(const arlo_interfaces::msg::EstadoArlo &msg)
 void CmSec::setParameters_evo(const std_msgs::msg::String &msg) 
 {
    // RCLCPP_INFO(this->get_logger(), "me llegaron mis nuevos pesos ->%s", msg.data.c_str());
-   redNeuronal.setParameters(msg.data.c_str());
+   redNeuronal.setParameters(msg.data.c_str(), 0.20);
    flag_success = false;
 }
 
@@ -122,8 +123,10 @@ void CmSec::genera_pesos(const char *archivo_name)
    }
 }
 
-void CmSec::service_importantWeights(const std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Request> request,
+bool CmSec::service_importantWeights(const std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Request> request,
                                      std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Response> response)
 {
-
+   cerr << "Se solicitaron los pesos importantes" << weightsFile <<endl;
+   response->weightsfile = weightsFile;
+   return true;
 }

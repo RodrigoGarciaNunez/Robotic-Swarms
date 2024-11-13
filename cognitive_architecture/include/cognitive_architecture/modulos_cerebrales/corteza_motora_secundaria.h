@@ -34,13 +34,13 @@ static map<int, vector<int>> task_map = {
 
 class CmSec : public rclcpp::Node{
 public:
-    CmSec(int i, char tipo, int task);
+    CmSec(int i, char tipo, int task, double dropOut);
     virtual ~CmSec();
     void ejecutaNN(const arlo_interfaces::msg::EstadoArlo &msg);
     void setParameters_evo(const std_msgs::msg::String &msg);
     bool fileExists(string path);
     void genera_pesos(const char *archivo_name);
-    void service_importantWeights(const std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Request> request,
+    bool service_importantWeights(const std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Request> request,
                                   std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Response> response);
 
 private:
@@ -62,6 +62,7 @@ private:
    double dist_to_go_x;
    double dist_to_go_y;
    bool flag_success;
+   string weightsFile;
 };
 
 #endif

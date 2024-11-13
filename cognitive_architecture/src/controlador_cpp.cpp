@@ -49,7 +49,8 @@ int main(int argc, char **argv){
     if(tipo==0){
         char senal;
         cin >> senal;
-        if (senal=='1') robots[0].SimulationSerever();
+        if (senal=='1') robots[0].SleepLearning();
+        else robots[0].mirroring(2);
 
     }
     
