@@ -14,6 +14,7 @@
 #include <vector>
 #include <cmath>
 #include <random>
+#include <map>
 
 #define INPUT_LAYER 0
 
@@ -27,9 +28,9 @@ public:
 
 	void driveArlo(vector<double> const & inputs, vector<double>& reaction);
     void setParameters(const char* weightsFile, double dropOutRate);
-    void vectorEnvia(vector<double> & output);
+    //void vectorEnvia(vector<double> & output);
 	int numWeights();
-    bool dropout(double p);
+    void dropout(double p);
 
     double dropoutRate;
 
@@ -63,6 +64,8 @@ private:
     void nnOuputs();
     void adjustOutputs(vector<double > &y);
     double sigmoid(double x, double factor=1.0);
+
+    map<int,vector<int>> neurons2ignore;  //clave = capa oculta, elemento = neurona(s) de la capa
 };
 
 #endif /* SRC_NEUROCONTROLLERDRIVER_HPP_ */

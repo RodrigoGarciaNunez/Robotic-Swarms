@@ -99,13 +99,13 @@ bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::Ev
 SimulationState srvEvaluateDriver::startSimulation(int maxtime)
 {
     
+    puts("Starting the simulation of a new driver...");
+    puts("---------------------------");
+    
     arloState.resetState();
     double fx=0;
     maxSimTime = maxtime;
     num_check =0;
-
-    puts("Starting the simulation of a new driver...");
-    puts("---------------------------");
 
     stuckCounter = 0;
 

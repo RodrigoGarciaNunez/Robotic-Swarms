@@ -3,12 +3,18 @@
 // este nodo contiene la red neuronal que se encarga de decidir los movimientos del robot
 // cmSec es corteza motora Secundaria
 
-CmSec::CmSec(int i, char tipo, int task, double dropOut) : Node("Corteza_motora_secundaria_" + to_string(i) + tipo), identificador(i), task(task),
-                                    redNeuronal(task_map[task][0], task_map[task][1], dropOut, rangos_salidas), tipo(tipo - 48) // -48 por el ascci
+CmSec::CmSec(int i, char tipo, int task, double dropOut, double xGoal, double yGoal) : 
+                                    Node("Corteza_motora_secundaria_" + to_string(i) + tipo), identificador(i), task(task),
+                                    redNeuronal(task_map[task][0], task_map[task][1], dropOut, rangos_salidas), tipo(tipo - 48), // 48 por el ascci
+                                    Goalx(xGoal), Goaly(yGoal)
 {
    flag_success = false;
+   id = i;
    service_getWeights =  this->create_service<arlo_interfaces::srv::GetImportantWeights>("robot"+to_string(i)+tipo+"/service_importantWeights", 
                 bind(&CmSec::service_importantWeights,this, placeholders::_1, placeholders::_2));
+
+   service_sendFitness =  this->create_service<arlo_interfaces::srv::GetMatesFitness>("robot"+to_string(i)+tipo+"/service_get_fitness", 
+                bind(&CmSec::service_send_fitness,this, placeholders::_1, placeholders::_2));
 
    publisher_NN = this->create_publisher<std_msgs::msg::Float64MultiArray>
                ("robot" + to_string(i) + tipo + "/corteza_motora_secundariaNN", 10);
@@ -57,8 +63,8 @@ void CmSec::ejecutaNN(const arlo_interfaces::msg::EstadoArlo &msg)
          entradas.push_back(msg.sensor4.ranges[i]);
       }
 
-      dist_to_go_x = 0.0 - (msg.odom.pose.pose.position.x);
-      dist_to_go_y = 0.0 - (msg.odom.pose.pose.position.y);
+      dist_to_go_x = Goalx - (msg.odom.pose.pose.position.x);
+      dist_to_go_y = Goaly - (msg.odom.pose.pose.position.y);
 
       entradas.push_back(dist_to_go_x);
       entradas.push_back(dist_to_go_y);
@@ -116,7 +122,7 @@ void CmSec::genera_pesos(const char *archivo_name)
    mt19937 gen(rd());                               // Motor mersenne_twister_engine
    uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 500
 
-   archivo << to_string(task_map[task][0]) + " " + to_string(task_map[task][1]) + " 0\n";
+   archivo << to_string(task_map[task][0]) + " " + to_string(task_map[task][1]) + " 0 0\n";  //cabecera del txt: entradas salidas capas_ocultas fitness
    for (int i = 0; i < task_map[task][0]; i++)
    {
       archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
@@ -128,5 +134,13 @@ bool CmSec::service_importantWeights(const std::shared_ptr<arlo_interfaces::srv:
 {
    cerr << "Se solicitaron los pesos importantes" << weightsFile <<endl;
    response->weightsfile = weightsFile;
+   return true;
+}
+
+bool CmSec::service_send_fitness(const std::shared_ptr<arlo_interfaces::srv::GetMatesFitness::Request> request,
+                                  std::shared_ptr<arlo_interfaces::srv::GetMatesFitness::Response> response){
+   cerr << "solicitaron mi fitness" << endl;
+   response->fitness = fitness;
+   response->id = id;
    return true;
 }

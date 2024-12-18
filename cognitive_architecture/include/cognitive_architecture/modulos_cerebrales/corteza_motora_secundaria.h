@@ -19,6 +19,7 @@
 #include <cstdio>
 //#include "arlo_interfaces/msg/pesos_struct.hpp"
 #include "arlo_interfaces/msg/estado_arlo.hpp"
+#include "arlo_interfaces/srv/get_mates_fitness.hpp"
 #include <cstring>
 #include <sys/stat.h>
 #include <map>
@@ -34,7 +35,7 @@ static map<int, vector<int>> task_map = {
 
 class CmSec : public rclcpp::Node{
 public:
-    CmSec(int i, char tipo, int task, double dropOut);
+    CmSec(int i, char tipo, int task, double dropOut, double xGoal, double yGoal);
     virtual ~CmSec();
     void ejecutaNN(const arlo_interfaces::msg::EstadoArlo &msg);
     void setParameters_evo(const std_msgs::msg::String &msg);
@@ -42,6 +43,9 @@ public:
     void genera_pesos(const char *archivo_name);
     bool service_importantWeights(const std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Request> request,
                                   std::shared_ptr<arlo_interfaces::srv::GetImportantWeights::Response> response);
+    
+    bool service_send_fitness(const std::shared_ptr<arlo_interfaces::srv::GetMatesFitness::Request> request,
+                                  std::shared_ptr<arlo_interfaces::srv::GetMatesFitness::Response> response);
 
 private:
    rclcpp::Subscription<arlo_interfaces::msg::EstadoArlo>::SharedPtr subscription_; // aqui se declara al suscriptor
@@ -50,19 +54,26 @@ private:
    rclcpp::Publisher<arlo_interfaces::msg::PesosStruct>::SharedPtr publisher_evo_;
    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscriber_evo;
    rclcpp::Service<arlo_interfaces::srv::GetImportantWeights>::SharedPtr service_getWeights;
+   rclcpp::Service<arlo_interfaces::srv::GetMatesFitness>::SharedPtr service_sendFitness;
+
    vector<arlo_interfaces::msg::EstadoArlo> mensajes_recibidos;
    int task;
    int id;
    int tipo;
+   double fitness;
    vector<double> entradas;
    int identificador;
    NeuroControllerDriver redNeuronal;
    vector<pair<double, double>> rangos_salidas;
    int banderaGenetico;
+   
    double dist_to_go_x;
    double dist_to_go_y;
+   double Goalx, Goaly;
+
    bool flag_success;
    string weightsFile;
+
 };
 
 #endif
