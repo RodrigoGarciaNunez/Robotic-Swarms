@@ -20,6 +20,7 @@ find_package(arlo_interfaces REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(rosgraph_msgs REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(gazebo_msgs REQUIRED)
 
 #rosidl_generate_interfaces(${PROJECT_NAME}
 #  "msg/MatrixVector.msg"
@@ -31,7 +32,7 @@ include_directories(include)
 
 #create cpp executable and link with dependencies
 add_executable(cpp_exe src/controlador_cpp.cpp)
-ament_target_dependencies(cpp_exe rclcpp std_msgs sensor_msgs std_srvs arlo_interfaces fmt rosgraph_msgs nav_msgs rclcpp_components)
+ament_target_dependencies(cpp_exe rclcpp std_msgs sensor_msgs std_srvs arlo_interfaces fmt rosgraph_msgs nav_msgs rclcpp_components gazebo_msgs)
 target_link_libraries(cpp_exe
   fmt::fmt
 )

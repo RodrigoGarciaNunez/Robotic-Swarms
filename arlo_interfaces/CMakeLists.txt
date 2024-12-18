@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MatesOdom.msg"
   "srv/EvaluateDriver.srv"
   "srv/GetImportantWeights.srv"
+  "srv/GetMatesFitness.srv"
   DEPENDENCIES sensor_msgs nav_msgs std_msgs 
 )
 

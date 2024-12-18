@@ -6,7 +6,7 @@
       <visual name="visual">
         <geometry>
           <mesh>
-            <uri>models://cerebral_carpet/meshes/cerebral_carpet.dae</uri>
+            <uri>/home/rodrigo/ros2_iron/src/cognitive_architecture/models/cerebral_carpet/meshes/cerebral_carpet.dae</uri>
           </mesh>
         </geometry>
       </visual>

@@ -5,8 +5,9 @@ using std::placeholders::_1;
 
 // este nodo contiene el algoritmo evolutivo para los pesos de la red neuronal de la cms
 
-cp::cp(int i, RobotNaviFun *p, ParamsGA params, bool *bandera, int task) : Node("Corteza_premotora_" + std::to_string(i) + "0"),
-                                                                           identificador(i), genetico(p, params, i, task), flag(bandera), task(task)
+cp::cp(int i, RobotNaviFun *p, ParamsGA params, bool *bandera, int task) : 
+                    Node("Corteza_premotora_" + std::to_string(i) + "0"),
+                    identificador(i), genetico(p, params, i, task), flag(bandera), task(task)
 {
     inputDir = "./archivo_pesos_" + std::to_string(identificador) + ".txt";
 
@@ -21,8 +22,6 @@ cp::cp(int i, RobotNaviFun *p, ParamsGA params, bool *bandera, int task) : Node(
         actualizaMates.data = 1;
         publisherMates->publish(actualizaMates);
     }
-
-    //timer_ = this->create_wall_timer(700ms, std::bind(&cp::ejecutaGenetico, this));
 }
 
 cp::~cp() {}
@@ -51,13 +50,21 @@ void cp::ejecutaGenetico()
 void cp::Mirroring(int i)
 {
     client_getWeights = this->create_client<arlo_interfaces::srv::GetImportantWeights>("robot"+to_string(i)+"0/service_importantWeights");
+    
+    while (!client_getWeights->wait_for_service(std::chrono::seconds(1))) {
+        if (!rclcpp::ok()) {
+            std::cout << "Servicio para Mirroing no disponible. Saliendo." << std::endl;
+            return;
+        }
+        std::cout << "Servicio para Mirroing no disponible. Intentando nuevamente..." << std::endl;
+    }
 
     auto request = std::make_shared<arlo_interfaces::srv::GetImportantWeights::Request>();
     auto response = client_getWeights->async_send_request(request);
     
     if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), response) == rclcpp::FutureReturnCode::SUCCESS) {
         auto result = response.get();
-        cerr << "Pesos obtenidos " << result->weightsfile << endl;
+        // cerr << "Pesos obtenidos " << result->weightsfile << endl;
 
         auto mensajePesos = std_msgs::msg::String(); 
         mensajePesos.data = result->weightsfile;

@@ -35,23 +35,23 @@ NeuroControllerDriver::~NeuroControllerDriver()
 { 
 }
 
-void NeuroControllerDriver::vectorEnvia(vector<double> &output)
-{
+// void NeuroControllerDriver::vectorEnvia(vector<double> &output)
+// {
 
-   for (auto matriz : weights)
-   {
-      // Iterar sobre el segundo nivel del vector multidimensional
-      for (auto columna : matriz)
-      {
-         // Iterar sobre el tercer nivel del vector multidimensional
-         for (auto peso : columna)
-         {
-            // Agregar cada valor al vector de salida
-            output.push_back(peso);
-         }
-      }
-   }
-}
+//    for (auto matriz : weights)
+//    {
+//       // Iterar sobre el segundo nivel del vector multidimensional
+//       for (auto columna : matriz)
+//       {
+//          // Iterar sobre el tercer nivel del vector multidimensional
+//          for (auto peso : columna)
+//          {
+//             // Agregar cada valor al vector de salida
+//             output.push_back(peso);
+//          }
+//       }
+//    }
+// }
 
 void NeuroControllerDriver::setParameters(const char *weightsFile, double dropOutRate)
 {
@@ -105,7 +105,8 @@ void NeuroControllerDriver::nnOuputs()
          // For each input i of layer k-1
          for (int i = 0; i < numNodesLayer[k - 1]; i++) //el dropout sería aquí
          {  
-            if (!dropout(dropoutRate)) layerOutputs[k][j] += layerOutputs[k - 1][i] * weights[k - 1][i][j];
+            //if (!dropout(dropoutRate)) 
+            layerOutputs[k][j] += layerOutputs[k - 1][i] * weights[k - 1][i][j];
          }
          // Normalize each output of the hidden layer.
          //layerOutputs[k][j] = sigmoid(layerOutputs[k][j], 0.01);
@@ -231,8 +232,17 @@ double NeuroControllerDriver::sigmoid(double x, double factor)
    return (1.0 / (1.0 + exp(-factor * x)));
 }
 
-bool NeuroControllerDriver::dropout(double p)
-{
-   uniform_real_distribution<> rdis(0.0, 1.0);
-   return rdis(rng) <= p;
+void NeuroControllerDriver::dropout(double p)
+{  
+   int numNeurons = 0;
+   uniform_int_distribution<> intdis(1, numLayers-1);
+   int randomNeuron=0;
+   int randomLayer=0;
+   while(true){
+      randomNeuron =  intdis(rng);
+      randomLayer = intdis(rng);
+      if(neurons2ignore.find(randomNeuron) == neurons2ignore.end()){  //if random neuron is not in the map yet
+         neurons2ignore[randomLayer].push_back(randomNeuron);
+      }
+   }
 }
