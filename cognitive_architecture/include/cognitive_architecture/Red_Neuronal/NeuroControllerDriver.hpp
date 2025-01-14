@@ -149,7 +149,7 @@ void NeuroControllerDriver::readWeights()
 {
    cout << "NNDriver: reading weight values for the Neural Network." << endl;
    cout << "NNDriver: the input file is " << inputName << endl;
-   cout << "NNDriver: the format is #inputs #outputs #hidLayers #size_h1 ... #size_hN" << endl;
+   cout << "NNDriver: the format is #inputs #outputs #hidLayers #fitness #size_h1 ... #size_hN" << endl;
 
    weightsFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
@@ -162,17 +162,20 @@ void NeuroControllerDriver::readWeights()
       int nInputNodes;
       int nOutputNodes;
       int nHidLayers;
+      //double fitness;
 
       weightsFile >> nInputNodes;
       weightsFile >> nOutputNodes;
       weightsFile >> nHidLayers;
+      weightsFile >> fitness;
 
       cerr << "NNDriver: inputs=" << nInputs
            << ", hid layers=" << nHiddenLayers
-           << ", outputs=" << nOutputs << endl;
+           << ", outputs=" << nOutputs 
+           << ", Fitness = " << fitness << endl;
 
       // Check whether the structure of the read NN is the same of the one expected.
-      if (nInputNodes != nInputs || nOutputNodes != nOutputs || nHidLayers != nHiddenLayers)
+      if (nInputNodes != nInputs || nOutputNodes != nOutputs || nHidLayers != nHiddenLayers) 
       {
          cerr << "\n\n NNDriver: The structure of the NN is not the one expected.\n\n"
               << endl;

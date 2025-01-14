@@ -5,7 +5,9 @@
 #include "cognitive_architecture/modulos_cerebrales/corteza_premotora.hpp"
 #include "cognitive_architecture/modulos_cerebrales/corteza_motora_secundaria.hpp"
 #include "cognitive_architecture/control_simulacion/srvEvaluateDriver.hpp"
+#include "cognitive_architecture/control_simulacion/srvED_Multiple_Goals.hpp"
 #include "arlo_interfaces/srv/get_mates_fitness.hpp"
+#include "cognitive_architecture/miscelaneo.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <thread>
 
@@ -38,6 +40,7 @@ private:
     int numMates_;
     double Goalx, Goaly;
     RobotNaviFun* p;
+    Miscelaneo *misc;
     ParamsGA params;
     bool bandera=true;
     double dropOut; 

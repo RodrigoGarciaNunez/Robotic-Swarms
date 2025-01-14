@@ -7,7 +7,7 @@
 // #include <csignal>
 #include <cstdlib>
 #include "cognitive_architecture/robot.hpp"
-#include "cognitive_architecture/miscelaneo.hpp"
+//#include "cognitive_architecture/miscelaneo.hpp"
 
 using namespace std;
 
@@ -31,10 +31,6 @@ int main(int argc, char **argv)
     cout << "Ingresa la coordenadas de la meta (x, y)";
     cin >> Goalx >> Goaly;
     cout << endl;
-
-    Miscelaneo *misc = new Miscelaneo();
-    misc->SpawnEntity("cerebral_carpet", "cerebral_carpet", 
-    "src/cognitive_architecture/models/cerebral_carpet/cerebral_carpet.sdf", Goalx, Goaly, 0.05); 
 
     // std::signal(SIGUSR1, remSignal);
     tipo = atoi(argv[1]);

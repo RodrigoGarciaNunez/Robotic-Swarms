@@ -49,14 +49,15 @@ void cp::ejecutaGenetico()
 
 void cp::Mirroring(int i)
 {
+    cerr << i << endl;
     client_getWeights = this->create_client<arlo_interfaces::srv::GetImportantWeights>("robot"+to_string(i)+"0/service_importantWeights");
     
-    while (!client_getWeights->wait_for_service(std::chrono::seconds(1))) {
+    while (!client_getWeights->wait_for_service(chrono::seconds(1))) {
         if (!rclcpp::ok()) {
-            std::cout << "Servicio para Mirroing no disponible. Saliendo." << std::endl;
+            cout << "Servicio para Mirroing no disponible. Saliendo." << endl;
             return;
         }
-        std::cout << "Servicio para Mirroing no disponible. Intentando nuevamente..." << std::endl;
+        cout << "Servicio para Mirroing no disponible. Intentando nuevamente..." << endl;
     }
 
     auto request = std::make_shared<arlo_interfaces::srv::GetImportantWeights::Request>();

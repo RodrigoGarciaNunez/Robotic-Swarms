@@ -69,7 +69,7 @@ void RobotNaviFun::evaluateFun(vector<double> const &x, double &fun, vector<doub
 
     // Crear una solicitud para el servicio
     auto request = std::make_shared<arlo_interfaces::srv::EvaluateDriver::Request>();
-    request->maxtime = 25; // Tiempo máximo para que el robot llegue a la meta.
+    request->maxtime = 30; // Tiempo máximo para que el robot llegue a la meta.
     request->weightsfile = fmt::format(popFilePattern, Id); // Usar el id actual
     //std::cerr << "hice la solicitud del servicio" << std::endl;
     
@@ -94,7 +94,7 @@ void RobotNaviFun::writeWeightsFile(vector<double> const &weights, int id) const
     std::cerr << weightsFileName << std::endl;
     std::ofstream archivo(weightsFileName);
 
-    archivo <<  std::to_string(task_map_[Task][0])+" "+std::to_string(task_map_[Task][1])+" 0\n";
+    archivo <<  std::to_string(task_map_[Task][0])+" "+std::to_string(task_map_[Task][1])+" 0 0\n";
 
     for (int i = 0; i < (task_map_[Task][0])*(task_map_[Task][1]); i+=2)
     {
