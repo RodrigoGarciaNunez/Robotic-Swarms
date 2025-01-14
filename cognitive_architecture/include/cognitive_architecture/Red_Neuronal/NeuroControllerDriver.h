@@ -33,7 +33,8 @@ public:
     void dropout(double p);
 
     double dropoutRate;
-
+    double fitness;
+    
 private:
     /* Input file of NN weights */
     ifstream weightsFile;
@@ -45,6 +46,7 @@ private:
     int nInputs;        // Number of inputs. Taken from input file
     int nOutputs;       // Number of outputs. Taken from input file
     vector<pair<double,double> > oBounds;  // Range for each output value.
+    
 
     int numLayers;               // Number of total layers including input, output and hidden layers.
     int nHiddenLayers;           // Number of hidden layers.

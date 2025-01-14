@@ -45,6 +45,7 @@ CmSec::CmSec(int i, char tipo, int task, double dropOut, double xGoal, double yG
    }
    weightsFile = archivo;
    redNeuronal.setParameters(archivo, dropOut);
+   fitness = redNeuronal.fitness;
 }
  
 CmSec::~CmSec(){}
@@ -120,12 +121,12 @@ void CmSec::genera_pesos(const char *archivo_name)
    ofstream archivo(archivo_name);
    random_device rd;
    mt19937 gen(rd());                               // Motor mersenne_twister_engine
-   uniform_int_distribution<> distribucion(1, 500); // Números entre 1 y 500
+   uniform_int_distribution<> distribucion(-500, 500); // Números entre -500 y 500
 
    archivo << to_string(task_map[task][0]) + " " + to_string(task_map[task][1]) + " 0 0\n";  //cabecera del txt: entradas salidas capas_ocultas fitness
    for (int i = 0; i < task_map[task][0]; i++)
    {
-      archivo << distribucion(gen) << " " << distribucion(gen) << "\n";
+      archivo << distribucion(gen) << " " << distribucion(gen) << " ";
    }
 }
 

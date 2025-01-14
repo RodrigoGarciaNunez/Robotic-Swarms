@@ -9,6 +9,7 @@ Robot::Robot(int id , char tipo, int task, int numMates, double goalx, double go
     Goalx = goalx;
     Goaly = goaly;
     p = new RobotNaviFun(id_, task_);
+    misc = new Miscelaneo();
     
     corteza_motora_secundaria = make_shared<CmSec>(id_, tipo_, task_, dropOut, Goalx, Goaly);
     corteza_premotora = make_shared<cp>(id_,p,params,&bandera,task_);
@@ -24,7 +25,7 @@ void Robot::ejecutar() {
 
 void Robot::SleepLearning() {
     
-    server = make_shared<srvEvaluateDriver>(1, 0, 0);
+    server = make_shared<srvEvaluateDriver>(1, 0, 0, misc);
     
     thread serverThread([this] {
         rclcpp::spin(server);
@@ -38,7 +39,7 @@ void Robot::SleepLearning() {
     serverThread.join();
 }
 
-void Robot::mirroring() { // i representa al indivduo que se va a imitar
+void Robot::mirroring() {
     int id_toCopy = 0;
     double best_Fitness = 0;
     thread cpThread([this, &id_toCopy, &best_Fitness] {
@@ -55,16 +56,14 @@ void Robot::mirroring() { // i representa al indivduo que se va a imitar
                     }
                     
 
-                } else {
-                    cout << "Fallo al llamar al servicio para obtener pesos para imitación." << endl;
-                }
-                
+                } 
+                else cout << "Fallo al llamar al servicio para obtener pesos para imitación." << endl;
             }
             
         }
+        cerr << id_toCopy << endl;
         corteza_premotora->Mirroring(id_toCopy);
     });
-
     cpThread.join();
 }
 
