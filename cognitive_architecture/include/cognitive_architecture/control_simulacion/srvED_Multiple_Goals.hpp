@@ -1,75 +1,93 @@
 #include "srvED_Multiple_Goals.h"
 
-srvMultipleGoals::srvMultipleGoals(double x, double y, Miscelaneo *misc_): Node("servidor_simulacion_Multiple_Goals")
+srvMultipleGoals::srvMultipleGoals(double x, double y, Miscelaneo *misc_): srvEvaluateDriver(1,x,y,misc) //Node("servidor_simulacion_Multiple_Goals")
 {
     rclcpp::QoS qos_profile(1);
     // Cambiar la política de confiabilidad a 'Best Effort'
     qos_profile.reliability(rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
 
     service_ = this->create_service<arlo_interfaces::srv::EvaluateDriver>("evaluate_driver",
-                                                                          bind(&srvEvaluateDriver::evaluateDriver, this, placeholders::_1, placeholders::_2));
+                                                                          bind(&srvMultipleGoals::evaluateDriver, this, placeholders::_1, placeholders::_2));
 
-    nodoClock = std::make_shared<rclcpp::Node>("suscriptor_clock");
-
-    clockSus = nodoClock->create_subscription<rosgraph_msgs::msg::Clock>("/clock",
-                                                                         qos_profile, bind(&srvEvaluateDriver::checkSimulationTime, this, placeholders::_1));
-
-    nodoOdom = std::make_shared<rclcpp::Node>("suscriptor_Odom");
-
-    OdomSus = nodoOdom->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot10/temporal_lobe_",
-                                                                              qos_profile, bind(&srvEvaluateDriver::checkModelPosition, this, placeholders::_1));
-
-    executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-
-    publisher_pesos_eval = this->create_publisher<std_msgs::msg::String>("robot10/corteza_premotora_pesos", 10);
-
-    ignoreSetter = this->create_publisher<std_msgs::msg::Int64>("robot10/ignoreFlag", 10);
-
+    UpdateGoal= this->create_publisher<std_msgs::msg::Float64MultiArray>("robot10/changeGoal", 10);
 
     RCLCPP_INFO(this->get_logger(), "Servidor listo para recibir solicitudes.");
-
-    clientg = rclcpp::Node::make_shared("cliente_reset");
-    reset_simulation_client_ = clientg->create_client<std_srvs::srv::Empty>("/reset_simulation");
 
     prev_x = 0;
     prev_y = 0;
     stuck = false;
     stuckCounter = 0;
-    Task = task;
     num_check = 0;
     x_start = -6.6;
     y_start = -13.6;
 
     gen = mt19937(random_device{}());
     gen.seed(rd());
-    uniform_dist = uniform_int_distribution<>(0, goalsUnreached - 1);
+    uniform_dist = uniform_int_distribution<>(1, goals_2_reach - 1);
 
     misc = misc_;
+
+    cerr << "hola" << endl;
 }
 
 srvMultipleGoals::~srvMultipleGoals() {}
 
-SimulationState srvMultipleGoals::startSimulation()
+bool srvMultipleGoals::evaluateDriver(const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
+                                       const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Response> response)
+{
+    // arloState.resetState();
+    auto flag = std_msgs::msg::Int64();
+    flag.data = 1;
+    ignoreSetter->publish(flag);
+
+    string pesos = request->weightsfile;
+    auto mensaje = std_msgs::msg::String();
+    mensaje.data = pesos;
+    publisher_pesos_eval->publish(mensaje);
+
+    misc->restartSimulation();
+
+    while ((arloState.position[0] > x_start) || (arloState.position[1] > y_start))
+    {
+        executor->spin_node_once(nodoOdom);
+        RCLCPP_INFO(this->get_logger(), "Esperando a que los datos estén bien");
+        cerr << arloState.position[0] << arloState.position[1] << endl;
+    }
+
+    flag.data = 0;
+    ignoreSetter->publish(flag);
+
+    current_goal_xy = GoalsCoordenates[0];
+
+    startSimulation(request->maxtime);
+
+    response->time = arloState.finishTime;
+    response->dist2go = arloState.distanceToGo;
+    response->damage = arloState.robotDamage;
+    response->energy = arloState.distanceTravelled;
+    response->dist2mates = arloState.dist_to_mates;
+
+    return true;
+}
+
+SimulationState srvMultipleGoals::startSimulation(int maxTime)
 {
 
-    puts("Starting the simulation of a new driver...");
+    puts("Starting the simulation of a new driver with multiple goals...");
     puts("---------------------------");
 
     arloState.resetState();
     double fx = 0;
-    maxSimTime = maxtime;
+    double goalsUnreached=goals_2_reach;
+    std_msgs::msg::Float64MultiArray vector_Goal;
+    maxSimTime = maxTime*goals_2_reach;
     num_check = 0;
+
 
     stuckCounter = 0;
 
     while (goalsUnreached > 0)
     {
-        current_goal_xy = GoalsCoordenates[uniform_dist(this->gen)];
-        cout << current_goal_xy.first << "" << current_goal_xy.second << endl;
-
-        misc->SetEntityState(current_goal_xy.first, current_goal_xy.second, 0.15, "cerebral_carpet",
-                             "src/cognitive_architecture/models/cerebral_carpet/cerebral_carpet.sdf");
-
         while (rclcpp::ok() && !arloState.hasTimeRunOut && !arloState.finishLineCrossed)
         {
             executor->spin_node_once(nodoClock);
@@ -78,6 +96,44 @@ SimulationState srvMultipleGoals::startSimulation()
 
         cout << "hasTimeRunOut= " << arloState.hasTimeRunOut << "\n";
         cout << "finishLineCrossed= " << arloState.finishLineCrossed << "\n";
+
+        if (arloState.hasTimeRunOut == true)
+        {
+            arloState.finishTime = 2 * maxSimTime;
+            // arloState.distanceToGo = goalDistance - arloState.currentPosition;
+            cout << "currentPosition= " << arloState.currentPosition << "\n";
+            if (arloState.stuck == true)
+            {
+                cout << " ---->>> ATASCADO  <<<-----" << endl;
+                cout << " \t Counter = " << stuckCounter << endl;
+            }
+            fx = ((maxSimTime/timerWIndow) + arloState.distanceToGo)*goalsUnreached;
+            cerr << "saliendo " << endl;
+            break;
+        }
+        else
+        { // The robot reached the goal.
+            arloState.finishTime = arloState.currentTime;
+            arloState.distanceToGo = 0.0;
+            arloState.robotEnergy = 100;
+            cout << "finishTime = " << arloState.finishTime << "\n" << endl;
+            fx = arloState.finishTime;
+        }
+        timerWIndow++;
+        goalsUnreached--;
+        arloState.resetState();
+
+        current_goal_xy = GoalsCoordenates[uniform_dist(this->gen)];
+        cout << current_goal_xy.first << "" << current_goal_xy.second << endl;
+
+        vector_Goal.data.push_back(current_goal_xy.first);
+        vector_Goal.data.push_back(current_goal_xy.second);
+
+        UpdateGoal->publish(vector_Goal);
+
+        misc->SetEntityState(current_goal_xy.first, current_goal_xy.second, 0.15, "cerebral_carpet",
+                             "src/cognitive_architecture/models/cerebral_carpet/cerebral_carpet.sdf");
+
     }
 
     cout << "x = " << arloState.position[0] << ", y = " << arloState.position[1] << endl;
@@ -89,4 +145,12 @@ SimulationState srvMultipleGoals::startSimulation()
     cout << "Bye." << endl;
 
     return arloState;
+}
+
+
+void srvMultipleGoals::checkSimulationTime(const rosgraph_msgs::msg::Clock &msg)
+{
+    arloState.currentTime = msg.clock.sec;
+
+    if (arloState.currentTime >= (maxSimTime/goals_2_reach)*timerWIndow) arloState.hasTimeRunOut = true;
 }

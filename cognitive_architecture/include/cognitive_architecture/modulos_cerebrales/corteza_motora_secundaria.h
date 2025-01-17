@@ -47,12 +47,15 @@ public:
     bool service_send_fitness(const std::shared_ptr<arlo_interfaces::srv::GetMatesFitness::Request> request,
                                   std::shared_ptr<arlo_interfaces::srv::GetMatesFitness::Response> response);
 
+    void setGoalCoordenates(const std_msgs::msg::Float64MultiArray &msg);
+
 private:
    rclcpp::Subscription<arlo_interfaces::msg::EstadoArlo>::SharedPtr subscription_; // aqui se declara al suscriptor
    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr publisher_NN;
    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr publisher_;
    rclcpp::Publisher<arlo_interfaces::msg::PesosStruct>::SharedPtr publisher_evo_;
    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscriber_evo;
+   rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr changeGoalSub;
    rclcpp::Service<arlo_interfaces::srv::GetImportantWeights>::SharedPtr service_getWeights;
    rclcpp::Service<arlo_interfaces::srv::GetMatesFitness>::SharedPtr service_sendFitness;
 

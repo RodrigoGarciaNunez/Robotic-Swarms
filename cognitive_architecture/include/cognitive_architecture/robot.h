@@ -20,7 +20,7 @@ public:
     ~Robot();
 
     void ejecutar();
-    void SleepLearning();
+    void SleepLearning(int elec);
 
     void mirroring();
 

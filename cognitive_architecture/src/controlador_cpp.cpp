@@ -57,8 +57,12 @@ int main(int argc, char **argv)
     {
         char senal;
         cin >> senal;
-        if (senal == '1')
-            robots[0].SleepLearning();
+        if (senal == '1'){
+            cout << "Qué entrenamiento se va a realizar? 0 = Básico, 1 = Metas dinámicas, 2 = Básico c/ Dummies, 3 = Metas y Dummies Dinámicos";
+            int elec;
+            cin >> elec;
+            robots[0].SleepLearning(elec);
+        }
         else if (senal == '2')
         {
             robots[0].mirroring();
