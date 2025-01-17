@@ -25,10 +25,10 @@ public:
     srvEvaluateDriver(int task, double x, double y, Miscelaneo * misc_);
 	virtual ~srvEvaluateDriver();
     SimulationState startSimulation(int maxtime);
-    bool evaluateDriver(const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
+    virtual bool evaluateDriver(const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
                         const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Response> response);
 
-    void checkSimulationTime(const rosgraph_msgs::msg::Clock &msg);
+    virtual void checkSimulationTime(const rosgraph_msgs::msg::Clock &msg);
     
     void checkModelPosition(const arlo_interfaces::msg::EstadoArlo &msg);
     
@@ -67,10 +67,11 @@ protected:
     rclcpp::Subscription<arlo_interfaces::msg::EstadoArlo>::SharedPtr OdomSus;
     rclcpp::executors::SingleThreadedExecutor::SharedPtr executor;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_pesos_eval;
-    rclcpp::Node::SharedPtr clientg; 
-    rclcpp::Client<std_srvs::srv::Empty>::SharedPtr reset_simulation_client_;
+    // rclcpp::Node::SharedPtr clientg; 
+    // rclcpp::Client<std_srvs::srv::Empty>::SharedPtr reset_simulation_client_;
     rclcpp::Publisher<std_msgs::msg::Int64>::SharedPtr ignoreSetter;
     rclcpp::Subscription<std_msgs::msg::Int64>::SharedPtr ignoreGetter;
+
 };
 
 #endif

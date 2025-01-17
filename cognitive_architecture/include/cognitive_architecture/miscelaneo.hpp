@@ -5,6 +5,10 @@ Miscelaneo::Miscelaneo()
     EntityManagerNode = make_shared<rclcpp::Node>("Entity_Spawner");
     EntitySpawnClient = EntityManagerNode->create_client<gazebo_msgs::srv::SpawnEntity>("/spawn_entity");
     EntitySetClient = EntityManagerNode->create_client<gazebo_msgs::srv::DeleteEntity>("/delete_entity");
+
+
+    clientGz = rclcpp::Node::make_shared("cliente_reset");
+    reset_simulation_client_ = clientGz->create_client<std_srvs::srv::Empty>("/reset_simulation");
 }
 
 void Miscelaneo::SpawnEntity(string name, string NameSpace, string file_path, double x, double y, double z)
@@ -84,4 +88,14 @@ void Miscelaneo::SetEntityState(double x, double y, double z, string EntityName,
     // request->model_state.pose.position.z=z;
     // request->model_state.reference_frame="world";
     
+}
+
+void Miscelaneo::restartSimulation(){
+    auto requestg = std::make_shared<std_srvs::srv::Empty::Request>();
+    auto responseg = reset_simulation_client_->async_send_request(requestg);
+
+    while (rclcpp::spin_until_future_complete(clientGz, responseg) != rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(clientGz->get_logger(), "Esperando a que el servicio de reset termine");
+    }
 }

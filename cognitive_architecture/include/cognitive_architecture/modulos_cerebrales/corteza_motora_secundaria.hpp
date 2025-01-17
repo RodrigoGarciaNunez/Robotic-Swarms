@@ -31,6 +31,9 @@ CmSec::CmSec(int i, char tipo, int task, double dropOut, double xGoal, double yG
    subscription_ = this->create_subscription<arlo_interfaces::msg::EstadoArlo>
                ("robot" + to_string(i) + tipo + "/temporal_lobe_", 1, bind(&CmSec::ejecutaNN, this, placeholders::_1));
 
+   changeGoalSub = this->create_subscription<std_msgs::msg::Float64MultiArray>
+   ("robot"+to_string(i)+tipo+"/changeGoal", 10, bind(&CmSec::setGoalCoordenates, this, placeholders::_1));
+
 
    char archivo[50];
    
@@ -144,4 +147,11 @@ bool CmSec::service_send_fitness(const std::shared_ptr<arlo_interfaces::srv::Get
    response->fitness = fitness;
    response->id = id;
    return true;
+}
+
+void CmSec::setGoalCoordenates(const std_msgs::msg::Float64MultiArray &msg){
+   Goalx = msg.data[0];
+   Goaly = msg.data[1];
+
+   cout << "Meta actualizada" << Goalx << Goaly << endl;
 }

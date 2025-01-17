@@ -14,6 +14,9 @@ Robot::Robot(int id , char tipo, int task, int numMates, double goalx, double go
     corteza_motora_secundaria = make_shared<CmSec>(id_, tipo_, task_, dropOut, Goalx, Goaly);
     corteza_premotora = make_shared<cp>(id_,p,params,&bandera,task_);
 
+    misc->SpawnEntity("cerebral_carpet","cerebral_carpet",
+        "src/cognitive_architecture/models/cerebral_carpet/cerebral_carpet.sdf", Goalx, Goaly, 0.015);
+
     MatesFitnessClient = std::make_shared<rclcpp::Node>("Get_mates_fitness_client_"+to_string(id_));
 }
 
@@ -23,9 +26,18 @@ void Robot::ejecutar() {
     rclcpp::spin(corteza_motora_secundaria);    
 }
 
-void Robot::SleepLearning() {
-    
-    server = make_shared<srvEvaluateDriver>(1, 0, 0, misc);
+void Robot::SleepLearning(int elec) {
+    switch (elec)
+    {
+    case 0:
+        server = make_shared<srvEvaluateDriver>(1, 0, 0, misc);
+        break;
+    case 1:
+        server = make_shared<srvMultipleGoals>(0, 0, misc);
+        break;
+    default:
+        break;
+    }
     
     thread serverThread([this] {
         rclcpp::spin(server);
