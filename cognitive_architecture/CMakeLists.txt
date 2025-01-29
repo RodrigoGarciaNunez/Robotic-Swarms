@@ -32,14 +32,22 @@ include_directories(include)
 
 #create cpp executable and link with dependencies
 add_executable(cpp_exe src/controlador_cpp.cpp)
+add_executable(meta_exe src/controlador_meta.cpp)
+
 ament_target_dependencies(cpp_exe rclcpp std_msgs sensor_msgs std_srvs arlo_interfaces fmt rosgraph_msgs nav_msgs rclcpp_components gazebo_msgs)
 target_link_libraries(cpp_exe
+  fmt::fmt
+)
+
+ament_target_dependencies(meta_exe rclcpp std_msgs sensor_msgs std_srvs arlo_interfaces fmt rosgraph_msgs nav_msgs rclcpp_components gazebo_msgs)
+target_link_libraries(meta_exe
   fmt::fmt
 )
 
 #install cpp executables in the ros2_iron/install/cognitive_architecture/lib/cognitive_architecture/ folder
 install(TARGETS
   cpp_exe
+  meta_exe
   DESTINATION lib/${PROJECT_NAME}
 )
 

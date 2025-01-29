@@ -66,8 +66,6 @@ void Robot::mirroring() {
                         best_Fitness = result->fitness;
                         id_toCopy= result -> id;
                     }
-                    
-
                 } 
                 else cout << "Fallo al llamar al servicio para obtener pesos para imitación." << endl;
             }
