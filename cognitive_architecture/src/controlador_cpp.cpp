@@ -4,10 +4,9 @@
 #include <thread>
 #include <vector>
 #include <fstream>
-// #include <csignal>
 #include <cstdlib>
+#include <sstream>
 #include "cognitive_architecture/robot.hpp"
-//#include "cognitive_architecture/miscelaneo.hpp"
 
 using namespace std;
 
@@ -18,9 +17,14 @@ int num_bots;
 int main(int argc, char **argv)
 {
 
+    setenv("GAZEBO_MASTER_URI", "http://localhost:11345", 1);  // 1 significa sobrescribir si ya existe
+    setenv("ROS_DOMAIN_ID", "1", 1);
+    // system("export GAZEBO_MASTER_URI=http://localhost:11345");
+    // system("export ROS_DOMAIN_ID=1");
+
     if (argc < 4)
     {
-        std::cerr << "Faltó un argumento: cpp_exe tipo num_bots task" << std::endl;
+        cerr << "Faltó un argumento: cpp_exe tipo num_bots task" << endl;
 
         return 0;
     }
@@ -58,21 +62,29 @@ int main(int argc, char **argv)
         char senal;
         cin >> senal;
         if (senal == '1'){
-            cout << "Qué entrenamiento se va a realizar? 0 = Básico, 1 = Metas dinámicas, 2 = Básico c/ Dummies, 3 = Metas y Dummies Dinámicos";
-            int elec;
-            cin >> elec;
-            robots[0].SleepLearning(elec);
+            threads.push_back (thread([]() 
+                {   
+                    system("export GAZEBO_MASTER_URI=http://localhost:11346");
+                    system("export ROS_DOMAIN_ID=2");
+                    system("ros2 launch cognitive_architecture meta_trainning.launch.py task:=1"); }));
+
+            threads.push_back (thread([arg1 = string(argv[1]), arg3 = string(argv[3])]() 
+                {   
+                    system("export GAZEBO_MASTER_URI=http://localhost:11346");
+                    system("export ROS_DOMAIN_ID=2");
+                    ostringstream command;
+                    command << "ros2 run cognitive_architecture meta_exe " << arg1 << " 1 " << arg3;
+                    system(command.str().c_str()); }));
+
+            // cout << "Qué entrenamiento se va a realizar? 0 = Básico, 1 = Metas dinámicas, 2 = Básico c/ Dummies, 3 = Metas y Dummies Dinámicos";
+            // int elec;
+            // cin >> elec;
+            // robots[0].SleepLearning(elec);
         }
-        else if (senal == '2')
-        {
-            robots[0].mirroring();
-        }
+        else if (senal == '2') robots[0].mirroring();
     }
 
-    for (auto &thread : threads)
-    {
-        thread.join();
-    }
+    for (auto &thread : threads) thread.join();
     rclcpp::shutdown();
 
     return 0;
