@@ -6,6 +6,7 @@
 #include "cognitive_architecture/modulos_cerebrales/corteza_motora_secundaria.hpp"
 #include "cognitive_architecture/control_simulacion/srvEvaluateDriver.hpp"
 #include "cognitive_architecture/control_simulacion/srvED_Multiple_Goals.hpp"
+#include "cognitive_architecture/control_simulacion/srvED_Team_Movement.hpp"
 #include "arlo_interfaces/srv/get_mates_fitness.hpp"
 #include "cognitive_architecture/miscelaneo.hpp"
 #include "rclcpp/rclcpp.hpp"

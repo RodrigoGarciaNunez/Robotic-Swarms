@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/EvaluateDriver.srv"
   "srv/GetImportantWeights.srv"
   "srv/GetMatesFitness.srv"
+  "srv/GetRobotPose.srv"
   DEPENDENCIES sensor_msgs nav_msgs std_msgs 
 )
 

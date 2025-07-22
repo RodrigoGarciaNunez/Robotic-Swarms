@@ -30,7 +30,8 @@ public:
     void ejecutaGenetico();
     void resetGazebo() const;
     void Mirroring(int i);
-
+    void combineWeights(const std::string &newWeightsFile); 
+    
 private:
     
 

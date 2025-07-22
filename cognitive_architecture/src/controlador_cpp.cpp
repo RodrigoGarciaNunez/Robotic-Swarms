@@ -41,16 +41,18 @@ int main(int argc, char **argv)
     num_bots = atoi(argv[2]);
     task = atoi(argv[3]);
 
+    cerr << num_bots << endl;
     vector<Robot> robots;
 
     // Crear nodos y agregarlos a la lista
-    for (int i = 1; i <= num_bots; i++)
+    for (int i = 1; i <= num_bots; ++i)
     {
-        robots.push_back(Robot(i, *argv[1], task, num_bots, Goalx, Goaly));
+        robots.push_back(Robot(i, to_string(tipo)[0], task, num_bots, Goalx, Goaly));
+        cerr << i << endl;
     }
 
     vector<thread> threads;
-
+    cerr << robots.size()<< endl;
     for (int i = 0; i < static_cast<int>(robots.size()); i++)
     {
         threads.push_back(thread([&robots, i]()

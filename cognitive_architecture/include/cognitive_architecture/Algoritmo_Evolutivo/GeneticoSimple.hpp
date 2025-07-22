@@ -53,7 +53,7 @@ GeneticoSimple::GeneticoSimple(ProblemaOptim *p, ParamsGA &params, int id_, int 
             "ros2 run cognitive_architecture Controlador_individuo.py 1 1 1 > /dev/null"};
 
 
-    if (task != 1)  //en caso de que no sea necesario agregar dummies
+    if (task != 1)  //en caso de que sea necesario agregar dummies
     {
         system("ros2 launch cognitive_architecture dummys.launch.py num_bots:=1 > /dev/null");
 

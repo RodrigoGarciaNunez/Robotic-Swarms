@@ -10,7 +10,8 @@ el controlador del robot.
 La clase de debe derivar de la clase base ProblemaOptim.
 */
 
-static   std::map<int, std::vector<int>> task_map_ = {
+using namespace std;
+static   map<int, vector<int>> task_map_ = {
         {1, {98,2}},   // 1.- Desplazamiento individula
         {2, {99,2}}    // 2.- Desplazamiento en grupo
     };

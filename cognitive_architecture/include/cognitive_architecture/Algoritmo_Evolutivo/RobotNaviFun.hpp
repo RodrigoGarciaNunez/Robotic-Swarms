@@ -42,7 +42,7 @@ RobotNaviFun::RobotNaviFun(int id,int task,int maxSTime, double tThreshold)
     // SE DEBE PONER UNA RUTA DONDE LO PUEDA ENCONTRAR EL SERVIDOR.
     popFilePattern = "pesos_eval_{:02d}.txt";
 
-    client = std::make_shared<rclcpp::Node>("evaluate_driver_client");
+    client = std::make_shared<rclcpp::Node>("evaluate_driver_client_"+to_string(id));
     service = client->create_client<arlo_interfaces::srv::EvaluateDriver>("evaluate_driver");
 }
 
