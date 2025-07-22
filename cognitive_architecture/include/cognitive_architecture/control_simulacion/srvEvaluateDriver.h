@@ -22,7 +22,7 @@ using namespace std;
 class srvEvaluateDriver: public rclcpp::Node {
 public:
 
-    srvEvaluateDriver(int task, double x, double y, Miscelaneo * misc_);
+    srvEvaluateDriver(double x, double y, Miscelaneo * misc_);
 	virtual ~srvEvaluateDriver();
     SimulationState startSimulation(int maxtime);
     virtual bool evaluateDriver(const std::shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
@@ -47,7 +47,6 @@ protected:
     long double num_check; //numero de chequeos de odom;
     long int stuckCounter;
     bool stuck;
-    int Task;
     int ignoreFlag;
     double x_start, y_start;
     pair<double, double> current_goal_xy;

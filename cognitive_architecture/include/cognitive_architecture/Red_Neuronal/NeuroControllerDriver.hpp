@@ -62,7 +62,7 @@ void NeuroControllerDriver::setParameters(const char *weightsFile, double dropOu
 
 void NeuroControllerDriver::driveArlo(const vector<double> &inputs, vector<double> &reaction)
 {
-   // cout << "Entrando a driveArlo\n";
+   // cerr << "Entrando a driveArlo\n";
    /*** 0. Get the NN's input values from the current robot's state. ***/
    layerOutputs[INPUT_LAYER] = inputs;
 
@@ -70,14 +70,14 @@ void NeuroControllerDriver::driveArlo(const vector<double> &inputs, vector<doubl
    {
       if (isinf(layerOutputs[INPUT_LAYER][i]))
          layerOutputs[INPUT_LAYER][i] = 4;
-      // cout << layerOutputs[INPUT_LAYER][i] << ", ";
+      // cerr << layerOutputs[INPUT_LAYER][i] << ", ";
    }
-   // cout << "\n";
+   // cerr << "\n";
 
    /*** 1. Compute NN outputs ***/
    /*****************************/
    nnOuputs();
-   // cout << "Ya se calculo la salida de la red.\n";
+   // cerr << "Ya se calculo la salida de la red.\n";
 
    reaction = layerOutputs.back(); // Get the computed output values vector.
 
@@ -147,16 +147,16 @@ void NeuroControllerDriver::printOutputs(vector<double> &y)
 
 void NeuroControllerDriver::readWeights()
 {
-   cout << "NNDriver: reading weight values for the Neural Network." << endl;
-   cout << "NNDriver: the input file is " << inputName << endl;
-   cout << "NNDriver: the format is #inputs #outputs #hidLayers #fitness #size_h1 ... #size_hN" << endl;
+   cerr << "NNDriver: reading weight values for the Neural Network." << endl;
+   cerr << "NNDriver: the input file is " << inputName << endl;
+   cerr << "NNDriver: the format is #inputs #outputs #hidLayers #fitness #size_h1 ... #size_hN" << endl;
 
    weightsFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
    try
    {
       weightsFile.open(inputName, std::ifstream::in);
-      // std::cout << "aca voy bien" << std::flush;
+      // std::cerr << "aca voy bien" << std::flush;
 
       // Read number of inputs, outputs and number of hidden layers from the weight file
       int nInputNodes;
@@ -206,18 +206,18 @@ void NeuroControllerDriver::readWeights()
 
 void NeuroControllerDriver::printWeights()
 {
-   cout << "NNDriver: the weight are:" << endl;
+   cerr << "NNDriver: the weight are:" << endl;
 
    for (auto weightMatrix : weights)
    {
-      cout << "Rows: " << weightMatrix.size() << "Cols: " << weightMatrix[0].size() << endl;
+      cerr << "Rows: " << weightMatrix.size() << "Cols: " << weightMatrix[0].size() << endl;
       for (auto row : weightMatrix)
       {
          for (auto matrixEntry : row)
-            cout << matrixEntry << "\t";
-         cout << endl; // New line after each row
+            cerr << matrixEntry << "\t";
+         cerr << endl; // New line after each row
       }
-      cout << endl; // Additional new line after each entire weight matrix.
+      cerr << endl; // Additional new line after each entire weight matrix.
    }
 }
 

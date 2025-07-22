@@ -126,7 +126,6 @@ class temporal_lobe(Node):
         
             self.dist_to_mates /= (self.numMates - 1)
 
-    
         self.estado.dist_to_mates = self.dist_to_mates
         self.publisher.publish(self.estado)
         self.flag_recibido = [False] *(4+self.numMates)

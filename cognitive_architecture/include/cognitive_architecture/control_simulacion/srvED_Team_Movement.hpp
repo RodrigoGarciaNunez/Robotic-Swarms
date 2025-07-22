@@ -1,56 +1,17 @@
-#include "SimulationState.hpp"
-#include "srvEvaluateDriver.h"
-#include <unistd.h>
-#include "rclcpp_components/node_factory.hpp"
+#include "srvED_Team_Movement.h"
 
-srvEvaluateDriver::srvEvaluateDriver(double x, double y, Miscelaneo * misc_) : Node("servidor_simulacion_basico")// hay que agregar el id del robot que le corresponda
+srvTeamMovement::srvTeamMovement(double x, double y, Miscelaneo * misc_): srvEvaluateDriver(x,y,misc) // hay que agregar el id del robot que le corresponda
 {
-    rclcpp::QoS qos_profile(1);
-    // Cambiar la política de confiabilidad a 'Best Effort'
-    qos_profile.reliability(rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
 
-    service_ = this->create_service<arlo_interfaces::srv::EvaluateDriver>("evaluate_driver",
-                                                                          bind(&srvEvaluateDriver::evaluateDriver, this, placeholders::_1, placeholders::_2));
-
-    nodoClock = std::make_shared<rclcpp::Node>("suscriptor_clock");
-
-    clockSus = nodoClock->create_subscription<rosgraph_msgs::msg::Clock>("/clock",
-                                                                         qos_profile, bind(&srvEvaluateDriver::checkSimulationTime, this, placeholders::_1));
-
-    nodoOdom = std::make_shared<rclcpp::Node>("suscriptor_Odom");
-
-    OdomSus = nodoOdom->create_subscription<arlo_interfaces::msg::EstadoArlo>("robot10/temporal_lobe_",
-                                                                              qos_profile, bind(&srvEvaluateDriver::checkModelPosition, this, placeholders::_1));
-
-    executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-
-    publisher_pesos_eval = this->create_publisher<std_msgs::msg::String>("robot10/corteza_premotora_pesos", 10);
-
-    ignoreSetter = this->create_publisher<std_msgs::msg::Int64>("robot10/ignoreFlag", 10);
-
-    // ignoreGetter = this->create_subscription<std_msgs::msg::Int64>("/robot10/ignoreFlag",
-    //             qos_profile, bind(&srvEvaluateDriver::IgnoreSetter, this, placeholders::_1));
-
-    RCLCPP_INFO(this->get_logger(), "Servidor básico listo para recibir solicitudes.");
-
-
-    prev_x = 0;
-    prev_y = 0;
-    stuck = false;
-    stuckCounter = 0;
-    num_check = 0;
-    x_start = -6.6;
-    y_start = -13.6;
+    RCLCPP_INFO(this->get_logger(), "Servidor de Team Movement listo para recibir solicitudes.");
     misc=misc_;
-    current_goal_xy.first=x; 
-    current_goal_xy.second=y;
 }
 
-srvEvaluateDriver::~srvEvaluateDriver()
+srvTeamMovement::~srvTeamMovement()
 {
 }
 
-bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
+bool srvTeamMovement::evaluateDriver(const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Request> request,
                                        const shared_ptr<arlo_interfaces::srv::EvaluateDriver::Response> response)
 {
     // arloState.resetState();
@@ -86,7 +47,7 @@ bool srvEvaluateDriver::evaluateDriver(const shared_ptr<arlo_interfaces::srv::Ev
     return true;
 }
 
-SimulationState srvEvaluateDriver::startSimulation(int maxtime)
+SimulationState srvTeamMovement::startSimulation(int maxtime)
 {
 
     puts("Starting the simulation of a new driver...");
@@ -125,12 +86,6 @@ SimulationState srvEvaluateDriver::startSimulation(int maxtime)
         { // The robot reached the goal.
             arloState.finishTime = arloState.currentTime;
 
-            // if(arloState.finishTime < 5){
-            //     cerr << "este tiempo está mal. va de nuevo" << endl;
-            //     startSimulation(maxSimTime);
-            //     return arloState;
-            // }
-
             arloState.distanceToGo = 0.0;
             arloState.robotEnergy = 100;
             cout << "finishTime = " << arloState.finishTime << "\n" << endl;
@@ -148,25 +103,8 @@ SimulationState srvEvaluateDriver::startSimulation(int maxtime)
     return arloState;
 }
 
-double srvEvaluateDriver::dist2Go(double x, double y)
-{
-    double distToGo = 0.0;
-    //.  Si es la diana CEREBRAL
-    double xTarget = current_goal_xy.first;
-    double yTarget = current_goal_xy.second;
-    distToGo = distance(xTarget, yTarget, x, y);
 
-    return distToGo;
-}
-
-double srvEvaluateDriver::distance(double x1, double y1, double x2, double y2)
-{
-    double sum = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-    return sqrt(sum);
-}
-
-
-void srvEvaluateDriver::checkModelPosition(const arlo_interfaces::msg::EstadoArlo &msg)
+void srvTeamMovement::checkModelPosition(const arlo_interfaces::msg::EstadoArlo &msg)
 {
     // ROS_INFO("Seq: [%d]", msg->header.seq);
     // ROS_INFO("Position-> x: [%f]", msg->pose.pose.position.x);
@@ -204,20 +142,14 @@ void srvEvaluateDriver::checkModelPosition(const arlo_interfaces::msg::EstadoArl
     // double d2go = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y);
     arloState.distanceToGo = dist2Go(msg.odom.pose.pose.position.x, msg.odom.pose.pose.position.y);
 
-    //if (Task == 1)
-    arloState.dist_to_mates = 0.0;
-    //else dist_to_mates(msg.dist_to_mates);
+    dist_to_mates(msg.dist_to_mates);
 
     if (arloState.distanceToGo <= 1.0) arloState.finishLineCrossed = true;
 }
 
-void srvEvaluateDriver::checkSimulationTime(const rosgraph_msgs::msg::Clock &msg)
-{
-    arloState.currentTime = msg.clock.sec;
-
-    if (arloState.currentTime >= maxSimTime) arloState.hasTimeRunOut = true;
+void srvTeamMovement::dist_to_mates(double current_dist_to_mates){
+    arloState.dist_to_mates = (arloState.dist_to_mates+current_dist_to_mates) / 2;
 }
-
 // void srvEvaluateDriver::IgnoreSetter(const std_msgs::msg::Int64::SharedPtr msg){
 //     ignoreFlag = msg->data;
 // }

@@ -8,16 +8,21 @@ Robot::Robot(int id , char tipo, int task, int numMates, double goalx, double go
     dropOut = 0.0;
     Goalx = goalx;
     Goaly = goaly;
-    p = new RobotNaviFun(id_, task_);
-    misc = new Miscelaneo();
     
-    corteza_motora_secundaria = make_shared<CmSec>(id_, tipo_, task_, dropOut, Goalx, Goaly);
+    p = new RobotNaviFun(id_, task_);
+    misc = new Miscelaneo(id_);
+    
+    corteza_motora_secundaria  = make_shared<CmSec>(id_, tipo_, task_, dropOut, Goalx, Goaly);
     corteza_premotora = make_shared<cp>(id_,p,params,&bandera,task_);
 
-    misc->SpawnEntity("cerebral_carpet","cerebral_carpet",
+    if(id_==1){
+        misc->SpawnEntity("cerebral_carpet","cerebral_carpet",
         "src/cognitive_architecture/models/cerebral_carpet/cerebral_carpet.sdf", Goalx, Goaly, 0.015);
+    }
+    
 
     MatesFitnessClient = std::make_shared<rclcpp::Node>("Get_mates_fitness_client_"+to_string(id_));
+    cout << "Robot " << id << " en linea"<< endl;
 }
 
 Robot::~Robot() {}
@@ -30,12 +35,17 @@ void Robot::SleepLearning(int elec) {
     switch (elec)
     {
     case 0:
-        server = make_shared<srvEvaluateDriver>(1, 0, 0, misc);
+        server = make_shared<srvEvaluateDriver>(0, 0, misc);
         break;
     case 1:
         server = make_shared<srvMultipleGoals>(0, 0, misc);
         break;
+    case 2:
+        server = make_shared<srvTeamMovement>(0,0, misc);
+        break;
     default:
+        cerr << "no hay servidor especificado" << endl;
+        return;
         break;
     }
     

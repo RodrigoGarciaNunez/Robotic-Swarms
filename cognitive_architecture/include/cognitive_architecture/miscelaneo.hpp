@@ -1,13 +1,14 @@
 #include "miscelaneo.h"
 
-Miscelaneo::Miscelaneo()
-{
-    EntityManagerNode = make_shared<rclcpp::Node>("Entity_Spawner");
+Miscelaneo::Miscelaneo(int id)
+{   
+    id_ = id;
+    EntityManagerNode = make_shared<rclcpp::Node>("Entity_Spawner_"+to_string(id_));
     EntitySpawnClient = EntityManagerNode->create_client<gazebo_msgs::srv::SpawnEntity>("/spawn_entity");
     EntitySetClient = EntityManagerNode->create_client<gazebo_msgs::srv::DeleteEntity>("/delete_entity");
 
 
-    clientGz = rclcpp::Node::make_shared("cliente_reset");
+    clientGz = rclcpp::Node::make_shared("cliente_reset_"+to_string(id_));
     reset_simulation_client_ = clientGz->create_client<std_srvs::srv::Empty>("/reset_simulation");
 }
 

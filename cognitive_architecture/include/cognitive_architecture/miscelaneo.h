@@ -15,7 +15,7 @@ using namespace std;
 class Miscelaneo {
 
 public:
-    Miscelaneo();
+    Miscelaneo(int id);
     ~Miscelaneo();
 
     void SpawnEntity(string name, string NameSpace, string filem, double x, double y, double z);
@@ -23,6 +23,7 @@ public:
     void restartSimulation();
 
 private:
+    int id_;
     rclcpp::Node::SharedPtr EntityManagerNode;
     rclcpp::Client<gazebo_msgs::srv::SpawnEntity>::SharedPtr EntitySpawnClient;
     rclcpp::Client<gazebo_msgs::srv::DeleteEntity>::SharedPtr EntitySetClient;

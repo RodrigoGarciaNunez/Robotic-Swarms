@@ -1,6 +1,6 @@
 #include "srvED_Multiple_Goals.h"
 
-srvMultipleGoals::srvMultipleGoals(double x, double y, Miscelaneo *misc_): srvEvaluateDriver(1,x,y,misc) //Node("servidor_simulacion_Multiple_Goals")
+srvMultipleGoals::srvMultipleGoals(double x, double y, Miscelaneo *misc_): srvEvaluateDriver(x,y,misc) //Node("servidor_simulacion_Multiple_Goals")
 {
     rclcpp::QoS qos_profile(1);
     // Cambiar la política de confiabilidad a 'Best Effort'
@@ -11,7 +11,7 @@ srvMultipleGoals::srvMultipleGoals(double x, double y, Miscelaneo *misc_): srvEv
 
     UpdateGoal= this->create_publisher<std_msgs::msg::Float64MultiArray>("robot10/changeGoal", 10);
 
-    RCLCPP_INFO(this->get_logger(), "Servidor listo para recibir solicitudes.");
+    RCLCPP_INFO(this->get_logger(), "Servidor de MultipleGoals listo para recibir solicitudes.");
 
     prev_x = 0;
     prev_y = 0;
@@ -27,7 +27,7 @@ srvMultipleGoals::srvMultipleGoals(double x, double y, Miscelaneo *misc_): srvEv
 
     misc = misc_;
 
-    cerr << "hola" << endl;
+    //cerr << "hola" << endl;
 }
 
 srvMultipleGoals::~srvMultipleGoals() {}
